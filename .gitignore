@@ -1,0 +1,12 @@
+.idea/
+.DS_Store
+.gradle/
+node_modules/
+build/
+gradle/
+gradlew
+gradlew.bat
+package-lock.json
+*.class
+*.war
+src/main/webapp/static/main.js
