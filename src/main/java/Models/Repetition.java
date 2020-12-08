@@ -6,41 +6,48 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class Repetition extends Model {
-    public static Repetition find(int id){
-        Repetition repetition = null;
-        try{
-            String query = "SELECT * FROM repetitions LEFT JOIN courses on repetitions.course_id = courses.id LEFT JOIN teachers on repetitions.teacher_id = teachers.id WHERE repetitions.id = ?;";
-            Connection connection = Database.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, id);
-            ResultSet resultSet = statement.executeQuery();
-            if ( resultSet != null && resultSet.next() ){
-                repetition = new Repetition();
-                repetition.setPropertiesFromResultSet(resultSet);
-            }
-            statement.close();
-        }catch(SQLException ex){
-            ex.printStackTrace();
+    public static ArrayList<Repetition> getAll() throws SQLException {
+        String query = "SELECT * FROM repetitions LEFT JOIN courses ON repetitions.course_id = courses.id LEFT JOIN teachers ON repetitions.teacher_id = teachers.id;";
+        ArrayList<Repetition> elements = new ArrayList<>();
+        Connection connection = Database.getConnection();
+        PreparedStatement statement = connection.prepareStatement(query);
+        ResultSet resultSet = statement.executeQuery();
+        while( resultSet.next() ){
+            Repetition repetition = new Repetition();
+            repetition.setPropertiesFromResultSet(resultSet);
+            elements.add(repetition);
         }
+        statement.close();
+        return elements;
+    }
+
+    public static Repetition find(int id) throws SQLException {
+        Repetition repetition = null;
+        String query = "SELECT * FROM repetitions LEFT JOIN courses on repetitions.course_id = courses.id LEFT JOIN teachers on repetitions.teacher_id = teachers.id WHERE repetitions.id = ?;";
+        Connection connection = Database.getConnection();
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setInt(1, id);
+        ResultSet resultSet = statement.executeQuery();
+        if ( resultSet != null && resultSet.next() ){
+            repetition = new Repetition();
+            repetition.setPropertiesFromResultSet(resultSet);
+        }
+        statement.close();
         return repetition;
     }
 
-    public static ArrayList<Repetition> getAllOrderedByCourse(){
+    public static ArrayList<Repetition> getAllOrderedByCourse() throws SQLException {
         ArrayList<Repetition> elements = new ArrayList<>();
-        try{
-            String query = "SELECT * FROM repetitions LEFT JOIN courses on repetitions.course_id = courses.id LEFT JOIN teachers on repetitions.teacher_id = teachers.id ORDER BY course_id;";
-            Connection connection = Database.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query);
-            ResultSet resultSet = statement.executeQuery();
-            while( resultSet.next() ){
-                Repetition repetition = new Repetition();
-                repetition.setPropertiesFromResultSet(resultSet);
-                elements.add(repetition);
-            }
-            statement.close();
-        }catch(SQLException ex){
-            ex.printStackTrace();
+        String query = "SELECT * FROM repetitions LEFT JOIN courses on repetitions.course_id = courses.id LEFT JOIN teachers on repetitions.teacher_id = teachers.id ORDER BY course_id;";
+        Connection connection = Database.getConnection();
+        PreparedStatement statement = connection.prepareStatement(query);
+        ResultSet resultSet = statement.executeQuery();
+        while( resultSet.next() ){
+            Repetition repetition = new Repetition();
+            repetition.setPropertiesFromResultSet(resultSet);
+            elements.add(repetition);
         }
+        statement.close();
         return elements;
     }
 

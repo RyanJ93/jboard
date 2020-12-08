@@ -3,24 +3,36 @@ package Models;
 import Support.Database;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 public class Teacher extends Model {
-    public static Teacher find(int id){
-        Teacher teacher = null;
-        try{
-            String query = "SELECT * FROM teachers WHERE id = ?;";
-            Connection connection = Database.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, id);
-            ResultSet resultSet = statement.executeQuery();
-            if ( resultSet != null && resultSet.next() ){
-                teacher = new Teacher();
-                teacher.setPropertiesFromResultSet(resultSet);
-            }
-            statement.close();
-        }catch(SQLException ex){
-            ex.printStackTrace();
+    public static ArrayList<Teacher> getAll() throws SQLException {
+        ArrayList<Teacher> teachers = new ArrayList<>();
+        String query = "SELECT * FROM teachers;";
+        Connection connection = Database.getConnection();
+        PreparedStatement statement = connection.prepareStatement(query);
+        ResultSet resultSet = statement.executeQuery();
+        while ( resultSet.next() ){
+            Teacher teacher = new Teacher();
+            teacher.setPropertiesFromResultSet(resultSet);
+            teachers.add(teacher);
         }
+        statement.close();
+        return teachers;
+    }
+
+    public static Teacher find(int id) throws SQLException {
+        Teacher teacher = null;
+        String query = "SELECT * FROM teachers WHERE id = ?;";
+        Connection connection = Database.getConnection();
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setInt(1, id);
+        ResultSet resultSet = statement.executeQuery();
+        if ( resultSet != null && resultSet.next() ){
+            teacher = new Teacher();
+            teacher.setPropertiesFromResultSet(resultSet);
+        }
+        statement.close();
         return teacher;
     }
 

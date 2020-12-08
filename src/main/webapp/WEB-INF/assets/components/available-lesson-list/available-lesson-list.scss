@@ -1,0 +1,110 @@
+ul.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+
+  li {
+    padding: 6px 12px 12px 12px;
+    background-color: #101b28;
+
+    p.title {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    p.counter {
+      background-color: #fb782f;
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 23px;
+      font-size: 12px;
+    }
+
+    div.controls {
+      a {
+        margin-top: 15px;
+        display: inline-block;
+        float: right;
+      }
+    }
+
+    div.details {
+      margin-top: 12px;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .5s;
+      will-change: max-height;
+
+      &[data-open="true"] {
+        max-height: 500px !important;
+      }
+
+      ul.lessons {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+
+        li {
+          width: 250px;
+          display: inline-block;
+          border: 1px solid #FFF;
+          border-radius: 3px;
+          white-space: nowrap;
+        }
+
+        ul.slots {
+          list-style: none;
+          padding: 0;
+          width: 100%;
+          display: flex;
+          flex-wrap: wrap;
+          margin: 12px 0 0;
+
+          li {
+            width: 33%;
+            padding: 4px;
+            cursor: pointer;
+            position: relative;
+
+            &[data-available="0"]:after {
+              content: '';
+              width: 100%;
+              height: 3px;
+              background-color: red;
+              position: absolute;
+              display: block;
+              left: 0;
+              top: 50%;
+              transform: rotate(-28deg);
+            }
+
+            &[data-available="0"]:before {
+              content: '';
+              width: 100%;
+              height: 3px;
+              background-color: red;
+              position: absolute;
+              display: block;
+              left: 0;
+              top: 50%;
+              transform: rotate(28deg);
+            }
+
+            &[data-mine="0"]:after, &[data-mine="0"]:before {
+              background-color: #fb782f !important;
+              left: 13.5% !important;
+              width: 75% !important;
+            }
+
+            p.hour {
+              font-size: 11px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

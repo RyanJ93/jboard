@@ -1,0 +1,88 @@
+div.controls {
+    text-align: right;
+    border-bottom: 1px solid #FFF;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+ul.list {
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+
+    li {
+        list-style: none;
+        border-top: 1px solid #FFF;
+        padding-top: 6px;
+        margin-top: 6px;
+        display: flex;
+
+        &:first-child {
+            border-top: none !important;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+
+        div.info {
+            flex-grow: 1;
+
+            p {
+                font-size: 20px;
+            }
+        }
+
+        div.controls {
+            border: none !important;
+            margin: 0 !important;
+            padding: 3px 0 0 !important;
+            width: 67px;
+        }
+    }
+}
+
+form.form {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    background: #101b28;
+    width: 90%;
+    max-width: 400px;
+    height: 200px;
+    box-sizing: border-box;
+    padding: 12px;
+    z-index: 900;
+    display: none;
+
+    &[data-display="true"] {
+        display: block;
+    }
+
+    select {
+        display: block;
+        width: 100%;
+        background-color: #101b28;
+        color: #FFF;
+        border: none;
+        outline: none;
+        border-radius: 3px;
+        height: 32px;
+    }
+}
+
+div.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 850;
+    width: 100%;
+    height: 100%;
+    display: none;
+
+    &[data-display="true"] {
+        display: block;
+    }
+}

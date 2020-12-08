@@ -1,9 +1,11 @@
 package Controllers;
 
 import Models.User;
+import Utils.AuthManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.HashMap;
 
 public class UserController extends Controller {
@@ -12,19 +14,27 @@ public class UserController extends Controller {
     }
 
     public void login() throws IOException {
-        String account = this.request.getParameter("account");
-        String password = this.request.getParameter("password");
-        User user = User.findByAccount(account);
-        if ( user == null ){
-            HashMap<String, Object> response = new HashMap<>();
-            response.put("status", "error");
-            response.put("code", 404);
-            this.sendResponse(response);
-            return;
+        try{
+            String account = this.request.getParameter("account");
+            String password = this.request.getParameter("password");
+            User user = User.findByAccount(account);
+            if ( user == null ){
+                this.sendErrorResponse(null, 404);
+            }else if ( !user.getPasswordCocktail().compare(password) ){
+                this.sendErrorResponse(null, 403);
+            }else{
+                AuthManager.setUser(this.request.getSession(), user);
+                HashMap<String, String> data = new HashMap<>();
+                data.put("role", user.getRole());
+                this.sendSuccessResponse(data);
+            }
+        }catch(SQLException ex){
+            this.sendException(ex);
         }
-        /*
-        if ( !user.getPasswordCocktail().compare(password) ){
-            //
-        }*/
+    }
+
+    public void logout() throws IOException {
+        AuthManager.dropUser(this.request.getSession());
+        this.sendSuccessResponse(null);
     }
 }

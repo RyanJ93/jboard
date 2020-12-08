@@ -6,41 +6,33 @@ import Utils.PasswordCocktail;
 import java.sql.*;
 
 public class User extends Model {
-    public static User find(int id){
+    public static User find(int id) throws SQLException {
         User user = null;
-        try{
-            String query = "SELECT * FROM users WHERE id = ?;";
-            Connection connection = Database.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, id);
-            ResultSet resultSet = statement.executeQuery();
-            if ( resultSet != null && resultSet.next() ){
-                user = new User();
-                user.setPropertiesFromResultSet(resultSet);
-            }
-            statement.close();
-        }catch(SQLException ex){
-            ex.printStackTrace();
+        String query = "SELECT * FROM users WHERE id = ?;";
+        Connection connection = Database.getConnection();
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setInt(1, id);
+        ResultSet resultSet = statement.executeQuery();
+        if ( resultSet != null && resultSet.next() ){
+            user = new User();
+            user.setPropertiesFromResultSet(resultSet);
         }
+        statement.close();
         return user;
     }
 
-    public static User findByAccount(String account){
+    public static User findByAccount(String account) throws SQLException {
         User user = null;
-        try{
-            String query = "SELECT * FROM users WHERE account = ?;";
-            Connection connection = Database.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query);
-            statement.setString(1, account);
-            ResultSet resultSet = statement.executeQuery();
-            if ( resultSet != null && resultSet.next() ){
-                user = new User();
-                user.setPropertiesFromResultSet(resultSet);
-            }
-            statement.close();
-        }catch(SQLException ex){
-            ex.printStackTrace();
+        String query = "SELECT * FROM users WHERE account = ?;";
+        Connection connection = Database.getConnection();
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setString(1, account);
+        ResultSet resultSet = statement.executeQuery();
+        if ( resultSet != null && resultSet.next() ){
+            user = new User();
+            user.setPropertiesFromResultSet(resultSet);
         }
+        statement.close();
         return user;
     }
 

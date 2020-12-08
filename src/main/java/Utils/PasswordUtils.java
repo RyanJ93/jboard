@@ -1,5 +1,7 @@
 package Utils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,14 +14,16 @@ public class PasswordUtils {
     public static String digest(String string){
         String digest = null;
         try{
-            MessageDigest md = MessageDigest.getInstance("SHA-512");
-            byte[] bytes = md.digest(string.getBytes(StandardCharsets.UTF_8));
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byteArrayOutputStream.write(string.getBytes(StandardCharsets.UTF_8));
+            byte[] bytes = messageDigest.digest(byteArrayOutputStream.toByteArray());
             StringBuilder stringBuilder = new StringBuilder();
             for ( byte b : bytes ){
                 stringBuilder.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
             digest = stringBuilder.toString();
-        }catch(NoSuchAlgorithmException ex){
+        }catch(NoSuchAlgorithmException | IOException ex){
             ex.printStackTrace();
         }
         return digest;

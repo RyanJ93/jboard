@@ -1,0 +1,31 @@
+nav.wrapper {
+  height: 100%;
+  width: 250px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #101b28;
+  z-index: 1;
+
+  ul.menu {
+    margin: 60px 0 0 0;
+    box-sizing: border-box;
+    padding: 12px;
+    list-style: none;
+
+    li {
+      padding: 6px 0;
+      border-bottom: 1px solid #FFF;
+      cursor: pointer;
+
+      &:first-child {
+        padding-top: 0 !important;
+      }
+
+      &:last-child {
+        padding-bottom: 0 !important;
+        border: none !important;
+      }
+    }
+  }
+}

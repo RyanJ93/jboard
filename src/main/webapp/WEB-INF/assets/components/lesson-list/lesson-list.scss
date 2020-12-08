@@ -1,0 +1,96 @@
+ul.tabs {
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    border: 1px solid #DDD;
+    border-radius: 3px;
+
+    li {
+        list-style: none;
+        width: 33%;
+        padding: 3px 6px;
+        box-sizing: border-box;
+        border-left: 1px solid #FFF;
+        text-align: center;
+        cursor: pointer;
+        background-color: transparent;
+        transition: background-color .5s;
+        will-change: background-color;
+
+        &:first-child {
+            border: none !important;
+        }
+
+        &:hover {
+            background-color: rgba(251, 120, 47, 0.25);
+        }
+
+        &[data-active] {
+            background-color: #fb782f;
+        }
+    }
+}
+
+div.tabsWrapper {
+    div.tab {
+        display: none;
+
+        &[data-active] {
+            display: block;
+        }
+
+        ul.list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0 0;
+            width: 100%;
+
+            li {
+                list-style: none;
+                padding: 6px 0;
+                border-top: 1px solid #FFF;
+
+                &:first-child {
+                    border: none !important;
+                    padding-top: 0 !important;
+                }
+
+                div.info {
+                    display: inline-block;
+
+                    p.title {
+                        font-size: 20px;
+                    }
+
+                    p.teacher {
+                        font-style: italic;
+                        margin-top: -6px;
+                        font-size: 16px;
+                    }
+
+                    p.date {
+                        font-size: 14px;
+                    }
+                }
+
+                div.controls {
+                    float: right;
+                    margin-top: 18px;
+
+                    a.button:first-child {
+                        margin-right: 6px;
+                    }
+                }
+            }
+        }
+
+        p.emptyMessage {
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+            font-style: italic;
+        }
+    }
+}
