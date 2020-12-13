@@ -1,11 +1,11 @@
 package Controllers;
 
+import Forms.CourseCreateForm;
 import Models.Course;
 import Models.Lesson;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,7 +19,7 @@ public class CourseController extends Controller {
             this.checkAuth();
             ArrayList<HashMap<String, Object>> availableLessons = Lesson.getAvailable(this.authenticatedUser.getID());
             this.sendSuccessResponse(availableLessons);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -29,7 +29,7 @@ public class CourseController extends Controller {
             this.checkAuth().adminRequired();
             ArrayList<Course> courses = Course.getAll();
             this.sendSuccessResponse(courses);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -43,7 +43,7 @@ public class CourseController extends Controller {
                 course.delete();
             }
             this.sendSuccessResponse(null);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -51,11 +51,16 @@ public class CourseController extends Controller {
     public void create() throws IOException {
         try{
             this.checkAuth().adminRequired();
+            CourseCreateForm courseCreateForm = new CourseCreateForm(this.request);
+            if ( !courseCreateForm.validate() ){
+                this.sendFormErrorMessages(courseCreateForm.getMessages());
+                return;
+            }
             String title = this.request.getParameter("title");
             Course course = new Course();
             course.setTitle(title).save();
             this.sendSuccessResponse(course);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }

@@ -3,7 +3,8 @@
 export default {
     data: function(){
         return {
-            views: this.$root.views
+            views: this.$root.views,
+            activeView: null
         };
     },
     methods: {
@@ -14,8 +15,10 @@ export default {
         showView: function(event){
             const viewID = event.target.getAttribute('data-vid');
             if ( viewID !== null && viewID !== '' ){
-                this.$parent.setActiveView(viewID);
+                this.$root.$refs.app.setActiveView(viewID);
+                this.activeView = viewID;
             }
+            this.closeMenu();
         },
         logout: function(){
             const request = new XMLHttpRequest();
@@ -31,6 +34,17 @@ export default {
                 }
             };
             request.send();
+            this.closeMenu();
+        },
+        openMenu: function(){
+            this.$refs.menu.setAttribute('data-visible', 'true');
+            this.$refs.overlay.setAttribute('data-visible', 'true');
+            return this;
+        },
+        closeMenu: function(){
+            this.$refs.menu.setAttribute('data-visible', 'false');
+            this.$refs.overlay.setAttribute('data-visible', 'false');
+            return this;
         }
     }
 };

@@ -1,11 +1,11 @@
 package Controllers;
 
+import Forms.UserLoginForm;
 import Models.User;
 import Utils.AuthManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 
 public class UserController extends Controller {
@@ -15,6 +15,11 @@ public class UserController extends Controller {
 
     public void login() throws IOException {
         try{
+            UserLoginForm userLoginForm = new UserLoginForm(this.request);
+            if ( !userLoginForm.validate() ){
+                this.sendFormErrorMessages(userLoginForm.getMessages());
+                return;
+            }
             String account = this.request.getParameter("account");
             String password = this.request.getParameter("password");
             User user = User.findByAccount(account);
@@ -28,7 +33,7 @@ public class UserController extends Controller {
                 data.put("role", user.getRole());
                 this.sendSuccessResponse(data);
             }
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }

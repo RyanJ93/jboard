@@ -39,8 +39,8 @@ export default {
         },
         validate: function(){
             const name = this.$refs.name.getValue(), surname = this.$refs.surname.getValue();
-            const nameMessage = name === '' ? 'Invalid name.' : null;
-            const surnameMessage = surname === '' ? 'Invalid surname.' : null;
+            const nameMessage = name === '' ? 'You must provide a valid name.' : null;
+            const surnameMessage = surname === '' ? 'You must provide a valid surname.' : null;
             this.$refs.name.setErrorMessage(nameMessage);
             this.$refs.surname.setErrorMessage(surnameMessage);
             return nameMessage === null && surnameMessage === null;
@@ -49,6 +49,16 @@ export default {
             event.preventDefault();
             event.stopPropagation();
             this.create();
+        },
+        showFormErrorMessages: function(response){
+            if ( response.messages !== null && typeof response.messages === 'object' ){
+                if ( response.messages.name !== '' && typeof response.messages.name === 'string' ){
+                    this.$refs.name.setErrorMessage(response.messages.name);
+                }
+                if ( response.messages.surname !== '' && typeof response.messages.surname === 'string' ){
+                    this.$refs.surname.setErrorMessage(response.messages.surname);
+                }
+            }
         },
         create: function(){
             if ( this.validate() ){
@@ -60,6 +70,8 @@ export default {
                     if ( request.readyState === XMLHttpRequest.DONE ){
                         if ( request.response === null || request.response.code >= 500 ){
                             this.$refs.title.setErrorMessage('An error occurred, please retry later.');
+                        }else if ( request.response.code === 400 ){
+                            this.showFormErrorMessages(request.response);
                         }else{
                             this.teachers.push(request.response.data);
                             this.$root.$refs.app.getView('repetition-crud').setTeachers(this.teachers);

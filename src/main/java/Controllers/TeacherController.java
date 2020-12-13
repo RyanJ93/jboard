@@ -1,11 +1,10 @@
 package Controllers;
 
-import Models.Course;
+import Forms.TeacherCreateForm;
 import Models.Teacher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class TeacherController extends Controller {
@@ -18,7 +17,7 @@ public class TeacherController extends Controller {
             this.checkAuth().adminRequired();
             ArrayList<Teacher> teachers = Teacher.getAll();
             this.sendSuccessResponse(teachers);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -32,7 +31,7 @@ public class TeacherController extends Controller {
                 teacher.delete();
             }
             this.sendSuccessResponse(null);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -40,12 +39,17 @@ public class TeacherController extends Controller {
     public void create() throws IOException {
         try{
             this.checkAuth().adminRequired();
+            TeacherCreateForm teacherCreateForm = new TeacherCreateForm(this.request);
+            if ( !teacherCreateForm.validate() ){
+                this.sendFormErrorMessages(teacherCreateForm.getMessages());
+                return;
+            }
             String name = this.request.getParameter("name");
             String surname = this.request.getParameter("surname");
             Teacher teacher = new Teacher();
             teacher.setName(name).setSurname(surname).save();
             this.sendSuccessResponse(teacher);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }

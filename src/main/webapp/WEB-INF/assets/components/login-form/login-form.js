@@ -12,6 +12,16 @@ export default {
             event.stopPropagation();
             this.submit();
         },
+        showFormErrorMessages: function(response){
+            if ( response.messages !== null && typeof response.messages === 'object' ){
+                if ( response.messages.account !== '' && typeof response.messages.account === 'string' ){
+                    this.$refs.account.setErrorMessage(response.messages.account);
+                }
+                if ( response.messages.password !== '' && typeof response.messages.password === 'string' ){
+                    this.$refs.password.setErrorMessage(response.messages.password);
+                }
+            }
+        },
         submit: function(){
             if ( this.validate() ){
                 const request = new XMLHttpRequest();
@@ -26,6 +36,8 @@ export default {
                             this.$refs.password.setErrorMessage('No such user found.');
                         }else if ( request.response.code === 403 ){
                             this.$refs.password.setErrorMessage('Provided credentials are not valid.');
+                        }else if ( request.response.code === 400 ){
+                            this.showFormErrorMessages(request.response);
                         }else{
                             this.hide();
                             this.$parent.init();
@@ -39,8 +51,8 @@ export default {
         },
         validate: function(){
             const account = this.$refs.account.getValue(), password = this.$refs.password.getValue();
-            const accountMessage = account === '' ? 'Invalid account.' : null;
-            const passwordMessage = password === '' ? 'Invalid password.' : null;
+            const accountMessage = account === '' ? 'You must provide a valid account.' : null;
+            const passwordMessage = password === '' ? 'You must provide a valid password.' : null;
             this.$refs.account.setErrorMessage(accountMessage);
             this.$refs.password.setErrorMessage(passwordMessage);
             return accountMessage === null && passwordMessage === null;

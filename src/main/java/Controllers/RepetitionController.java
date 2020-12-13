@@ -1,12 +1,12 @@
 package Controllers;
 
+import Forms.RepetitionCreateForm;
 import Models.Course;
 import Models.Repetition;
 import Models.Teacher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class RepetitionController extends Controller {
@@ -19,7 +19,7 @@ public class RepetitionController extends Controller {
             this.checkAuth().adminRequired();
             ArrayList<Repetition> repetitions = Repetition.getAll();
             this.sendSuccessResponse(repetitions);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -33,7 +33,7 @@ public class RepetitionController extends Controller {
                 repetition.delete();
             }
             this.sendSuccessResponse(null);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -41,20 +41,29 @@ public class RepetitionController extends Controller {
     public void create() throws IOException {
         try{
             this.checkAuth().adminRequired();
+            RepetitionCreateForm repetitionCreateForm = new RepetitionCreateForm(this.request);
+            if ( !repetitionCreateForm.validate() ){
+                this.sendFormErrorMessages(repetitionCreateForm.getMessages());
+                return;
+            }
             int courseID = Integer.parseInt(this.request.getParameter("courseID"));
             int teacherID = Integer.parseInt(this.request.getParameter("teacherID"));
             Course course = Course.find(courseID);
             if ( course == null ){
-                //
+                repetitionCreateForm.dropMessages().setFieldMessage("courseID", "You must select an existing course.");
+                this.sendFormErrorMessages(repetitionCreateForm.getMessages());
+                return;
             }
             Teacher teacher = Teacher.find(teacherID);
             if ( teacher == null ){
-                //
+                repetitionCreateForm.dropMessages().setFieldMessage("teacherID", "You must select an existing teacher.");
+                this.sendFormErrorMessages(repetitionCreateForm.getMessages());
+                return;
             }
             Repetition repetition = new Repetition();
             repetition.setCourse(course).setTeacher(teacher).save();
             this.sendSuccessResponse(repetition);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }

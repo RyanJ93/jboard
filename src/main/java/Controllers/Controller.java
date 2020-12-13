@@ -50,6 +50,14 @@ public abstract class Controller {
         this.sendResponse(response);
     }
 
+    protected void sendFormErrorMessages(HashMap<String, String> messages) throws IOException {
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("status", "error");
+        response.put("code", 400);
+        response.put("messages", messages);
+        this.sendResponse(response);
+    }
+
     protected void sendErrorResponse(String message, int code) throws IOException {
         HashMap<String, Object> response = new HashMap<>();
         response.put("status", "error");

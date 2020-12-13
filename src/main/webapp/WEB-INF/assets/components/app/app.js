@@ -4,7 +4,8 @@ export default {
     data: function(){
         return {
             disabled: false,
-            views: this.$root.views
+            views: this.$root.views,
+            activeView: null
         }
     },
     methods: {
@@ -17,6 +18,9 @@ export default {
         },
         getAlertModal: function(){
             return this.$refs.alertModal;
+        },
+        getLateralMenu: function(){
+            return this.$refs.lateralMenu;
         },
         setDisabled: function(disabled){
             this.disabled = disabled === true;
@@ -54,7 +58,11 @@ export default {
                 }
                 view.setAttribute('data-active', ( isActive  ? 'true' : 'false' ));
             });
+            this.activeView = activeView;
             return this;
+        },
+        getActiveView: function(){
+            return this.activeView;
         },
         getView: function(viewID){
             let view = null, i = 0;

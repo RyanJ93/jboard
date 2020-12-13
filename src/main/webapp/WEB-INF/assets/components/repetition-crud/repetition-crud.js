@@ -5,7 +5,8 @@ export default {
         return {
             repetitions: [],
             teachers: [],
-            courses: []
+            courses: [],
+            formErrorMessages: {}
         };
     },
     methods: {
@@ -50,6 +51,17 @@ export default {
             this.teachers = teachers;
             return this;
         },
+        showFormErrorMessages: function(response){
+            this.formErrorMessages = {};
+            if ( response.messages !== null && typeof response.messages === 'object' ){
+                if ( response.messages.courseID !== '' && typeof response.messages.courseID === 'string' ){
+                    this.formErrorMessages.courseID = response.messages.courseID;
+                }
+                if ( response.messages.teacherID !== '' && typeof response.messages.teacherID === 'string' ){
+                    this.formErrorMessages.teacherID = response.messages.teacherID;
+                }
+            }
+        },
         create: function(){
             const request = new XMLHttpRequest();
             request.open('POST', '/app/api/repetition/create', true);
@@ -59,6 +71,8 @@ export default {
                 if ( request.readyState === XMLHttpRequest.DONE ){
                     if ( request.response === null || request.response.code >= 500 ){
                         this.$refs.title.setErrorMessage('An error occurred, please retry later.');
+                    }else if ( request.response.code === 400 ){
+                        this.showFormErrorMessages(request.response);
                     }else{
                         this.repetitions.push(request.response.data);
                         this.discardCreation();

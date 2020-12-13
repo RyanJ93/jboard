@@ -6,7 +6,6 @@ import Models.Teacher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class LessonController extends Controller {
@@ -34,7 +33,7 @@ public class LessonController extends Controller {
             Lesson lesson = new Lesson();
             lesson.setHour(hour).setDay(day).setUser(this.authenticatedUser).setCourse(course).setTeacher(teacher).save();
             this.sendSuccessResponse(lesson);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -44,7 +43,7 @@ public class LessonController extends Controller {
             this.checkAuth();
             ArrayList<Lesson> lessons = Lesson.getAllByUser(this.authenticatedUser, true);
             this.sendSuccessResponse(lessons);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -57,7 +56,7 @@ public class LessonController extends Controller {
                 lesson.getUser().setPassword(null);
             }
             this.sendSuccessResponse(lessons);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -78,7 +77,7 @@ public class LessonController extends Controller {
             }
             lesson.setCompleted(completed).save();
             this.sendSuccessResponse(null);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }
@@ -96,7 +95,7 @@ public class LessonController extends Controller {
                 lesson.delete(false);
             }
             this.sendSuccessResponse(null);
-        }catch(SQLException ex){
+        }catch(Exception ex){
             this.sendException(ex);
         }
     }

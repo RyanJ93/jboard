@@ -38,7 +38,7 @@ export default {
         },
         validate: function(){
             const title = this.$refs.title.getValue();
-            const titleMessage = title === '' ? 'Invalid title.' : null;
+            const titleMessage = title === '' ? 'You must provide a valid title.' : null;
             this.$refs.title.setErrorMessage(titleMessage);
             return titleMessage === null;
         },
@@ -46,6 +46,13 @@ export default {
             event.preventDefault();
             event.stopPropagation();
             this.create();
+        },
+        showFormErrorMessages: function(response){
+            if ( response.messages !== null && typeof response.messages === 'object' ){
+                if ( response.messages.title !== '' && typeof response.messages.title === 'string' ){
+                    this.$refs.title.setErrorMessage(response.messages.title);
+                }
+            }
         },
         create: function(){
             if ( this.validate() ){
@@ -57,6 +64,8 @@ export default {
                     if ( request.readyState === XMLHttpRequest.DONE ){
                         if ( request.response === null || request.response.code >= 500 ){
                             this.$refs.title.setErrorMessage('An error occurred, please retry later.');
+                        }else if ( request.response.code === 400 ){
+                            this.showFormErrorMessages(request.response);
                         }else{
                             this.courses.push(request.response.data);
                             this.$root.$refs.app.getView('repetition-crud').setCourses(this.courses);
