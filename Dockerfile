@@ -1,6 +1,10 @@
 FROM gradle:7.0.2-jdk16 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
+RUN curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh
+RUN bash nodesource_setup.sh ; rm nodesource_setup.sh
+RUN apt-get update ; apt-get install -y gcc g++ make nodejs
+RUN npm i ; npm run webpack-prod
 RUN gradle war --no-daemon
 
 FROM tomcat:9.0.46-jdk16-openjdk
