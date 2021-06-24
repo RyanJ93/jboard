@@ -1,91 +1,94 @@
 'use strict';
 
+import Request from '../../utils/Request';
+import User from '../../models/User';
+
 export default {
     data: function(){
         return {
             courses: []
         };
     },
+
     methods: {
         init: function(){
-            const request = new XMLHttpRequest();
-            request.open('GET', '/app/api/course/list', true);
-            request.responseType = 'json';
-            request.onreadystatechange = () => {
-                if ( request.readyState === XMLHttpRequest.DONE ){
-                    if ( !this.$parent.handleResponseError(request.response) ){
-                        this.courses = request.response.data;
-                        this.$root.$refs.app.getView('repetition-crud').setCourses(this.courses);
-                    }
-                }
-            };
-            request.send();
+            return this.reload();
         },
+
         reset: function(){
             this.courses = [];
             return this;
         },
+
+        reload: async function(){
+            const response = await Request.get('/api/course/list');
+            if ( !this.$parent.handleResponseError(response) ){
+                this.courses = response.data;
+                this.$root.$refs.app.getView('repetition-crud').setCourses(this.courses);
+            }
+        },
+
         openCreationForm: function(){
-            this.$refs.form.setAttribute('data-display', 'true');
-            this.$refs.overlay.setAttribute('data-display', 'true');
+            this.$refs.creationDialog.setAttribute('data-display', 'true');
             return this;
         },
+
         discardCreation: function(){
-            this.$refs.form.setAttribute('data-display', 'false');
-            this.$refs.overlay.setAttribute('data-display', 'false');
+            this.$refs.creationDialog.setAttribute('data-display', 'false');
             this.$refs.title.setValue('');
+            this.$refs.title.setErrorMessage('');
+            this.$forceUpdate();
             return this;
         },
+
         validate: function(){
             const title = this.$refs.title.getValue();
             const titleMessage = title === '' ? 'You must provide a valid title.' : null;
             this.$refs.title.setErrorMessage(titleMessage);
             return titleMessage === null;
         },
-        handleCreation: function(event){
+
+        handleCreation: async function(event){
             event.preventDefault();
             event.stopPropagation();
-            this.create();
+            await this.create();
         },
+
         showFormErrorMessages: function(response){
             if ( response.messages !== null && typeof response.messages === 'object' ){
                 if ( response.messages.title !== '' && typeof response.messages.title === 'string' ){
                     this.$refs.title.setErrorMessage(response.messages.title);
                 }
             }
+            this.$forceUpdate();
         },
-        create: function(){
+
+        create: async function(){
             if ( this.validate() ){
-                const request = new XMLHttpRequest();
-                request.open('POST', '/app/api/course/create', true);
-                request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                request.responseType = 'json';
-                request.onreadystatechange = () => {
-                    if ( request.readyState === XMLHttpRequest.DONE ){
-                        if ( request.response === null || request.response.code >= 500 ){
-                            this.$refs.title.setErrorMessage('An error occurred, please retry later.');
-                        }else if ( request.response.code === 400 ){
-                            this.showFormErrorMessages(request.response);
-                        }else{
-                            this.courses.push(request.response.data);
-                            this.$root.$refs.app.getView('repetition-crud').setCourses(this.courses);
+                const response = await Request.post('/api/course/create', {
+                    title: this.$refs.title.getValue()
+                });
+                if ( response.code === 400 ){
+                    this.showFormErrorMessages(response);
+                }else{
+                    this.$root.$refs.app.getView('repetition-crud').setCourses(this.courses);
+                    this.courses.push(response.data);
+                    await new Promise((resolve) => {
+                        this.$nextTick(() => {
                             this.discardCreation();
-                        }
-                    }
-                };
-                const title = this.$refs.title.getValue();
-                request.send('title=' + encodeURIComponent(title));
+                            resolve();
+                        });
+                    });
+                }
             }
         },
+
         remove: function(event){
-            this.$parent.getAlertModal().show('Do you really want to delete this course?', 'confirm', null, () => {
-                const courseID = parseInt(event.target.closest('li[data-cid]').getAttribute('data-cid'));
-                const request = new XMLHttpRequest();
-                request.open('GET', '/app/api/course/delete?id=' + courseID, true);
-                request.responseType = 'json';
-                request.onreadystatechange = () => {
-                    if ( request.readyState === XMLHttpRequest.DONE ){
-                        if ( !this.$parent.handleResponseError(request.response) ){
+            return new Promise((resolve, reject) => {
+                this.$root.$refs.app.getAlertModal().show('Do you really want to delete this course?', 'confirm', null, () => {
+                    const courseID = parseInt(event.target.closest('li[data-cid]').getAttribute('data-cid'));
+                    Request.get('/api/course/delete?id=' + courseID).then((response) => {
+                        if ( !this.$root.$refs.app.handleResponseError(response) ){
                             for ( let i = 0 ; i < this.courses.length ; i++ ){
                                 if ( this.courses[i].id === courseID ){
                                     this.courses.splice(i, 1);
@@ -93,11 +96,21 @@ export default {
                                 }
                             }
                             this.$root.$refs.app.getView('repetition-crud').setCourses(this.courses);
+                            return this.refreshInvolvedViews().then(() => resolve()).catch((ex) => reject(ex));
                         }
-                    }
-                };
-                request.send();
+                        resolve();
+                    }).catch((ex) => reject(ex));
+                });
             });
+        },
+
+        refreshInvolvedViews: async function(){
+            const authenticatedUserRole = this.$root.authenticatedUser?.getRole();
+            const viewName = authenticatedUserRole === User.ROLE_ADMIN ? 'lesson-list-all' : 'lesson-list';
+            await Promise.all([
+                this.$root.$refs.app.getView('available-lesson-list').reload(),
+                this.$root.$refs.app.getView(viewName).reload()
+            ]);
         }
     }
 };

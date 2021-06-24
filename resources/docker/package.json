@@ -1,0 +1,24 @@
+{
+  "name": "jboard",
+  "version": "0.0.1",
+  "description": "A repetitions management panel built for academic purposes.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RyanJ93/jboard.git"
+  },
+  "author": {
+    "name": "Enrico Sola",
+    "email": "hey@enricosola.com",
+    "url": "https://www.enricosola.com"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RyanJ93/jboard/issues"
+  },
+  "homepage": "https://github.com/RyanJ93/jboard#readme",
+  "dependencies": {
+    "mysql": "^2.18.1"
+  }
+}

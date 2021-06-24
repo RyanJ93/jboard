@@ -1,5 +1,8 @@
 'use strict';
 
+import Request from '../../utils/Request';
+import User from '../../models/User';
+
 export default {
     data: function(){
         return {
@@ -8,35 +11,65 @@ export default {
             activeView: null
         }
     },
+
     methods: {
+        getAuthenticatedUser: async function(){
+            let response = await Request.get('/api/user/get'), user = null;
+            if ( response?.code === 200 ){
+                user = new User(response.data.user);
+            }else{
+                this.handleResponseError(response);
+            }
+            return this.$root.authenticatedUser = user;
+        },
+
         refreshAvailableViews: function(){
-            this.views = this.$root.views;
+            const authenticatedUserRole = this.$root.authenticatedUser?.getRole();
+            this.views = this.$root.views.filter((view) => view.targetRoles.indexOf(authenticatedUserRole) >= 0);
             return this;
         },
+
         getLoginForm: function(){
             return this.$refs.loginForm;
         },
+
         getAlertModal: function(){
             return this.$refs.alertModal;
         },
+
         getLateralMenu: function(){
             return this.$refs.lateralMenu;
         },
+
         setDisabled: function(disabled){
             this.disabled = disabled === true;
             return this;
         },
-        init: function(){
-            this.refreshAvailableViews();
-            this.$refs.lateralMenu.refreshAvailableViews();
-            this.$refs.views.querySelectorAll('div[data-vid]').forEach((view) => {
-                const ref = 'view-' + view.getAttribute('data-vid');
-                if ( this.$refs.hasOwnProperty(ref) && typeof this.$refs[ref][0].init === 'function' ){
-                    this.$refs[ref][0].init();
-                }
-            });
-            this.setActiveView('available-lesson-list');
+
+        init: async function(){
+            this.setDisabled(true);
+            const authenticatedUser = await this.getAuthenticatedUser();
+            if ( authenticatedUser !== null ){
+                this.refreshAvailableViews().setDisabled(false);
+                this.$refs.lateralMenu.refreshAvailableViews();
+                await new Promise((resolve, reject) => {
+                    this.$nextTick(() => {
+                        const processes = [];
+                        this.$refs.views.querySelectorAll('div[data-vid]').forEach((view) => {
+                            const ref = 'view-' + view.getAttribute('data-vid');
+                            if ( this.$refs.hasOwnProperty(ref) && typeof this.$refs[ref][0].init === 'function' ){
+                                processes.push(this.$refs[ref][0].init());
+                            }
+                        });
+                        Promise.all(processes).then(() => {
+                            this.setActiveView('available-lesson-list');
+                            resolve();
+                        }).catch((ex) => reject(ex));
+                    });
+                });
+            }
         },
+
         reset: function(){
             this.$refs.views.querySelectorAll('div[data-vid]').forEach((view) => {
                 const ref = 'view-' + view.getAttribute('data-vid');
@@ -46,6 +79,7 @@ export default {
             });
             this.getLoginForm().show();
         },
+
         setActiveView: function(activeView){
             this.$refs.views.querySelectorAll('div[data-vid]').forEach((view) => {
                 const isActive = view.getAttribute('data-vid') === activeView;
@@ -59,11 +93,14 @@ export default {
                 view.setAttribute('data-active', ( isActive  ? 'true' : 'false' ));
             });
             this.activeView = activeView;
+            this.$refs.lateralMenu.refreshMenuStatus();
             return this;
         },
+
         getActiveView: function(){
             return this.activeView;
         },
+
         getView: function(viewID){
             let view = null, i = 0;
             const views = this.$refs.views.querySelectorAll('div[data-vid]');
@@ -78,6 +115,7 @@ export default {
             }
             return view;
         },
+
         handleResponseError: function(response, ignoredCodes = []){
             let handledError = false;
             if ( response === null ){
@@ -93,7 +131,8 @@ export default {
             return handledError;
         }
     },
-    mounted: function(){
-        this.init();
+
+    mounted: async function(){
+        await this.init();
     }
 };

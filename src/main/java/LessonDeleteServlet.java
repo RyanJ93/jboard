@@ -1,4 +1,4 @@
-import Controllers.LessonController;
+import controller.LessonController;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;

@@ -1,3 +1,5 @@
+@import '../../theme';
+
 ul.list {
   list-style: none;
   padding: 0;
@@ -8,7 +10,7 @@ ul.list {
   li {
     padding: 6px 12px 12px 12px;
     margin-bottom: 12px;
-    background-color: #101b28;
+    background-color: $primary-bg-color;
 
     p.title {
       font-size: 18px;
@@ -16,7 +18,7 @@ ul.list {
     }
 
     p.counter {
-      background-color: #fb782f;
+      background-color: $secondary-bg-color;
       display: inline-block;
       padding: 3px 9px;
       border-radius: 23px;
@@ -32,14 +34,14 @@ ul.list {
     }
 
     div.details {
-      margin-top: 12px;
       overflow: hidden;
       max-height: 0;
-      transition: max-height .5s;
-      will-change: max-height;
+      transition: max-height .5s, margin-top .5s;
+      will-change: max-height, margin-top;
 
       &[data-open="true"] {
         max-height: 500px !important;
+        margin-top: 12px;
       }
 
       ul.lessons {
@@ -47,13 +49,27 @@ ul.list {
         padding: 0;
         margin: 0;
         width: 100%;
+        height: 320px;
+        overflow: hidden;
+        overflow-x: auto;
+        white-space: nowrap;
 
         li {
-          width: 250px;
+          width: 300px;
           display: inline-block;
-          border: 1px solid #FFF;
+          border: 1px solid $primary-border-color;
           border-radius: 3px;
-          white-space: nowrap;
+          margin-left: 12px;
+
+          &:first-child {
+            margin: 0;
+          }
+
+          p.teacher {
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
         }
 
         ul.slots {
@@ -65,16 +81,18 @@ ul.list {
           margin: 12px 0 0;
 
           li {
-            width: 33%;
+            width: 25%;
             padding: 4px;
             cursor: pointer;
             position: relative;
+            border-radius: 0;
+            margin: 0;
 
             &[data-available="0"]:after {
               content: '';
               width: 100%;
               height: 3px;
-              background-color: red;
+              background-color: $danger-bg-color;
               position: absolute;
               display: block;
               left: 0;
@@ -86,7 +104,7 @@ ul.list {
               content: '';
               width: 100%;
               height: 3px;
-              background-color: red;
+              background-color: $danger-bg-color;
               position: absolute;
               display: block;
               left: 0;
@@ -94,17 +112,27 @@ ul.list {
               transform: rotate(28deg);
             }
 
-            &[data-mine="0"]:after, &[data-mine="0"]:before {
-              background-color: #fb782f !important;
+            &[data-is-mine="0"]:after, &[data-is-mine="0"]:before {
+              background-color: $secondary-bg-color !important;
               left: 13.5% !important;
               width: 75% !important;
             }
 
+            p.day {
+              font-weight: bold;
+            }
+
             p.hour {
-              font-size: 11px;
+              font-size: 10px;
             }
           }
         }
+      }
+
+      p.instructions {
+        margin-top: 6px;
+        font-style: italic;
+        font-size: 13px;
       }
     }
   }

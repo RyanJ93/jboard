@@ -10,6 +10,7 @@ export default {
             display: false
         };
     },
+
     methods: {
         show: function(text, type = 'alert', onClose, onConfirm){
             this.text = text;
@@ -19,6 +20,15 @@ export default {
             this.display = true;
             return this;
         },
+
+        showNetworkErrorMessage: function(callback, allowRetry = true){
+            this.text = 'An error occurred while contacting the server, please retry later.';
+            this.type = allowRetry !== false ? 'network-alert' : 'alert';
+            this.onClose = callback;
+            this.onConfirm = null;
+            this.display = true;
+        },
+
         hide: function(){
             this.display = false;
             this.text = '';
@@ -26,12 +36,14 @@ export default {
             this.onClose = this.onConfirm = null;
             return this;
         },
+
         confirm: function(){
             if ( typeof this.onConfirm === 'function' ){
                 this.onConfirm();
             }
             return this.hide();
         },
+
         cancel: function(){
             if ( typeof this.onClose === 'function' ){
                 this.onClose();

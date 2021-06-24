@@ -2,20 +2,26 @@
 
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '@fortawesome/fontawesome-free/js/fontawesome';
+import '@fortawesome/fontawesome-free/js/solid';
+import '@fortawesome/fontawesome-free/js/regular';
+import '@fortawesome/fontawesome-free/js/brands';
 import Vue from 'vue';
+
 import './app.scss';
+import User from './models/User';
 import app from './components/app/app.vue';
 import headerBar from './components/header-bar/header-bar.vue';
-import lateralMenu from './components/lateral-menu/lateral-menu.vue';
-import inputField from './components/input-field/input-field.vue';
 import loginForm from './components/login-form/login-form.vue';
-import availableLessonList from './components/available-lesson-list/available-lesson-list.vue';
+import inputField from './components/input-field/input-field.vue';
 import lessonList from './components/lesson-list/lesson-list.vue';
-import lessonListAll from './components/lesson-list-all/lesson-list-all.vue';
 import alertModal from './components/alert-modal/alert-modal.vue';
 import courseCrud from './components/course-crud/course-crud.vue';
 import teacherCrud from './components/teacher-crud/teacher-crud.vue';
+import lateralMenu from './components/lateral-menu/lateral-menu.vue';
+import lessonListAll from './components/lesson-list-all/lesson-list-all.vue';
 import repetitionCrud from './components/repetition-crud/repetition-crud.vue';
+import availableLessonList from './components/available-lesson-list/available-lesson-list.vue';
 
 function registerComponents(){
     Vue.component('app', app);
@@ -40,28 +46,41 @@ document.addEventListener('DOMContentLoaded', function(){
                 views: [{
                     id: 'available-lesson-list',
                     label: 'Available lessons',
-                    component: availableLessonList
+                    icon: 'calendar-alt',
+                    component: availableLessonList,
+                    targetRoles: [User.ROLE_USER, User.ROLE_ADMIN]
                 }, {
                     id: 'lesson-list',
                     label: 'My lessons',
-                    component: lessonList
+                    icon: 'chalkboard-teacher',
+                    component: lessonList,
+                    targetRoles: [User.ROLE_USER]
                 }, {
                     id: 'lesson-list-all',
                     label: 'All lessons',
-                    component: lessonListAll
+                    icon: 'chalkboard-teacher',
+                    component: lessonListAll,
+                    targetRoles: [User.ROLE_ADMIN]
                 }, {
                     id: 'course-crud',
                     label: 'Courses management',
-                    component: courseCrud
+                    icon: 'book',
+                    component: courseCrud,
+                    targetRoles: [User.ROLE_ADMIN]
                 }, {
                     id: 'teacher-crud',
                     label: 'Teachers management',
-                    component: teacherCrud
+                    icon: 'user-graduate',
+                    component: teacherCrud,
+                    targetRoles: [User.ROLE_ADMIN]
                 }, {
                     id: 'repetition-crud',
                     label: 'Repetitions management',
-                    component: repetitionCrud
-                }]
+                    icon: 'edit',
+                    component: repetitionCrud,
+                    targetRoles: [User.ROLE_ADMIN]
+                }],
+                authenticatedUser: null
             };
         },
         el: '#app'

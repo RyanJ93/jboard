@@ -3,10 +3,16 @@
 export default {
     methods: {
         init: function(){
-            this.$refs.list.init();
+            return this.$refs.list.init();
         },
+
         reset: function(){
             this.$refs.list.reset();
+            return this;
+        },
+
+        reload: function(){
+            return this.$refs.list.reload();
         }
     }
 };

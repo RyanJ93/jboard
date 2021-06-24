@@ -1,5 +1,8 @@
 'use strict';
 
+import Request from '../../utils/Request';
+import User from "../../models/User";
+
 export default {
     data: function(){
         return {
@@ -9,48 +12,54 @@ export default {
             formErrorMessages: {}
         };
     },
+
     methods: {
         init: function(){
-            const request = new XMLHttpRequest();
-            request.open('GET', '/app/api/repetition/list', true);
-            request.responseType = 'json';
-            request.onreadystatechange = () => {
-                if ( request.readyState === XMLHttpRequest.DONE ){
-                    if ( !this.$parent.handleResponseError(request.response) ){
-                        this.repetitions = request.response.data;
-                    }
-                }
-            };
-            request.send();
+            return this.refresh();
         },
+
         reset: function(){
             this.repetitions = [];
             return this;
         },
+
+        refresh: async function(){
+            const response = await Request.get('/api/repetition/list');
+            if ( !this.$parent.handleResponseError(response) ){
+                this.repetitions = response.data;
+            }
+        },
+
         openCreationForm: function(){
-            this.$refs.form.setAttribute('data-display', 'true');
-            this.$refs.overlay.setAttribute('data-display', 'true');
+            this.$refs.creationDialog.setAttribute('data-display', 'true');
             return this;
         },
+
         discardCreation: function(){
-            this.$refs.form.setAttribute('data-display', 'false');
-            this.$refs.overlay.setAttribute('data-display', 'false');
-            this.$refs.title.setValue('');
+            this.$refs.creationDialog.setAttribute('data-display', 'false');
+            this.$refs.teacherID.selectedIndex = 0;
+            this.$refs.courseID.selectedIndex = 0;
+            this.formErrorMessages = {};
+            this.$forceUpdate();
             return this;
         },
-        handleCreation: function(event){
+
+        handleCreation: async function(event){
             event.preventDefault();
             event.stopPropagation();
-            this.create();
+            await this.create();
         },
+
         setCourses: function(courses){
             this.courses = courses;
             return this;
         },
+
         setTeachers: function(teachers){
             this.teachers = teachers;
             return this;
         },
+
         showFormErrorMessages: function(response){
             this.formErrorMessages = {};
             if ( response.messages !== null && typeof response.messages === 'object' ){
@@ -60,48 +69,53 @@ export default {
                 if ( response.messages.teacherID !== '' && typeof response.messages.teacherID === 'string' ){
                     this.formErrorMessages.teacherID = response.messages.teacherID;
                 }
+            }else if ( typeof response.message === 'string' && response.message !== '' ){
+                this.formErrorMessages.teacherID = response.message;
+            }
+            this.$forceUpdate();
+        },
+
+        create: async function(){
+            const response = await Request.post('/api/repetition/create', {
+                teacherID: this.$refs.teacherID.value,
+                courseID: this.$refs.courseID.value
+            });
+            if ( response.code === 400 ){
+                this.showFormErrorMessages(response);
+            }else{
+                this.repetitions.push(response.data);
+                await this.$root.$refs.app.getView('available-lesson-list').reload();
+                this.discardCreation();
             }
         },
-        create: function(){
-            const request = new XMLHttpRequest();
-            request.open('POST', '/app/api/repetition/create', true);
-            request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            request.responseType = 'json';
-            request.onreadystatechange = () => {
-                if ( request.readyState === XMLHttpRequest.DONE ){
-                    if ( request.response === null || request.response.code >= 500 ){
-                        this.$refs.title.setErrorMessage('An error occurred, please retry later.');
-                    }else if ( request.response.code === 400 ){
-                        this.showFormErrorMessages(request.response);
-                    }else{
-                        this.repetitions.push(request.response.data);
-                        this.discardCreation();
-                    }
-                }
-            };
-            const courseID = this.$refs.courseID.value, teacherID = this.$refs.teacherID.value;
-            request.send('courseID=' + encodeURIComponent(courseID) + '&teacherID=' + encodeURIComponent(teacherID));
-        },
+
         remove: function(event){
-            this.$parent.getAlertModal().show('Do you really want to delete this repetition?', 'confirm', null, () => {
-                const repetitionID = parseInt(event.target.closest('li[data-rid]').getAttribute('data-rid'));
-                const request = new XMLHttpRequest();
-                request.open('GET', '/app/api/repetition/delete?id=' + repetitionID, true);
-                request.responseType = 'json';
-                request.onreadystatechange = () => {
-                    if ( request.readyState === XMLHttpRequest.DONE ){
-                        if ( !this.$parent.handleResponseError(request.response) ){
+            return new Promise((resolve, reject) => {
+                this.$parent.getAlertModal().show('Do you really want to delete this repetition?', 'confirm', null, () => {
+                    const repetitionID = parseInt(event.target.closest('li[data-rid]').getAttribute('data-rid'));
+                    Request.get('/api/repetition/delete?id=' + repetitionID).then((response) => {
+                        if ( !this.$parent.handleResponseError(response) ){
                             for ( let i = 0 ; i < this.repetitions.length ; i++ ){
                                 if ( this.repetitions[i].id === repetitionID ){
                                     this.repetitions.splice(i, 1);
                                     break;
                                 }
                             }
+                            return this.refreshInvolvedViews().then(() => resolve()).catch((ex) => reject(ex));
                         }
-                    }
-                };
-                request.send();
+                        resolve();
+                    }).catch((ex) => reject(ex));
+                });
             });
+        },
+
+        refreshInvolvedViews: async function(){
+            const authenticatedUserRole = this.$root.authenticatedUser?.getRole();
+            const viewName = authenticatedUserRole === User.ROLE_ADMIN ? 'lesson-list-all' : 'lesson-list';
+            await Promise.all([
+                this.$root.$refs.app.getView('available-lesson-list').reload(),
+                this.$root.$refs.app.getView(viewName).reload()
+            ]);
         }
     }
 };

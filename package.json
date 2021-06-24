@@ -1,19 +1,26 @@
 {
   "name": "jboard",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "A repetitions management panel built for academic purposes.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "webpack-dev": "webpack --mode=development",
     "webpack-prod": "webpack --mode=production",
-    "useradd": "node bin/useradd.js"
+    "useradd": "node bin/useradd.js",
+    "userdel": "node bin/userdel.js",
+    "userlist": "node bin/userlist.js",
+    "change-user-password": "node bin/change-user-password.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RyanJ93/jboard.git"
   },
-  "author": "",
+  "author": {
+    "name": "Enrico Sola",
+    "email": "hey@enricosola.com",
+    "url": "https://www.enricosola.com"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/RyanJ93/jboard/issues"
@@ -23,6 +30,7 @@
     "@babel/core": "^7.11.4",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/preset-env": "^7.11.0",
+    "@fortawesome/fontawesome-free": "^5.15.3",
     "autoprefixer": "^10.0.4",
     "babel-core": "^6.26.3",
     "babel-loader": "^8.1.0",
@@ -43,6 +51,7 @@
     "webpack-notifier": "^1.8.0"
   },
   "dependencies": {
+    "@babel/plugin-proposal-private-methods": "^7.13.0",
     "bootstrap": "^4.5.3",
     "jquery": "^3.5.1",
     "mysql": "^2.18.1",

@@ -1,5 +1,7 @@
+@import '../../theme';
+
 header.header {
-  background-color: #101b28;
+  background-color: $primary-bg-color;
   height: 60px;
   box-sizing: border-box;
   padding: 12px;
@@ -28,17 +30,33 @@ header.header {
     }
   }
 
-  p.logo {
-    height: 100%;
-    display: inline-block;
-    margin: 0;
-    line-height: 1.5;
-    color: #FFF;
-    font-size: 24px;
+  div.logoWrapper {
+    margin-top: 10px;
+
+    div.logo {
+      width: 24px;
+      height: 24px;
+      display: inline-block;
+      background-image: url(/static/icons/icon.png);
+      background-position: center;
+      background-size: cover;
+      margin-right: 12px;
+      margin-top: -8px;
+    }
+
+    p.title {
+      height: 100%;
+      display: inline-block;
+      line-height: 1.5;
+      color: #FFF;
+      font-size: 24px;
+      vertical-align: top;
+      margin: -12px 0 0;
+    }
   }
 
   @media(max-width: 720px){
-    p.logo {
+    div.logoWrapper {
       display: none !important;
     }
   }

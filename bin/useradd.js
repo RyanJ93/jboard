@@ -1,47 +1,28 @@
 'use strict';
 
-const readline = require('readline');
-const crypto = require('crypto');
-const mysql = require('mysql');
+const lib = require('./lib/lib');
 
-function generateToken(length){
-    return new Promise((resolve, reject) => {
-        crypto.randomBytes(length / 2, (error, bytes) => {
-            if ( error !== null ){
-                return reject(error);
-            }
-            resolve(bytes.toString('hex'));
-        });
-    });
-}
-
-const connection = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'root',
-    password: 'mysql_password',
-    database: 'jboard'
-});
-const stream = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-connection.connect();
-stream.question('What is the account name? ', (account) => {
-    stream.question('What is the account password? ', (password) => {
-        Promise.all([generateToken(32), generateToken(32)]).then((components) => {
-            let loop = Math.random() * (256 - 128) + 128;loop=3;
-            let hash = components[0] + password + components[1];
-            for ( let i = 0 ; i < loop ; i++ ){
-                hash = crypto.createHash('sha512').update(hash).digest().toString('hex');
-            }
-            const query = 'INSERT INTO users (account, password_salt, password_pepper, password_hash, password_loop, role) VALUES (?, ?, ?, ?, ?, ?);';
-            connection.query(query, [account, components[0], components[1], hash, loop, 'user'], (error) => {
-                if ( error !== null ){
-                    console.log(error);
-                }
-                console.log('User created!');
-                process.exit();
-            });
-        }).catch((ex) => console.log(ex));
-    });
-});
+(async () => {
+    const stream = lib.createInputStream(), connection = lib.createDatabaseConnection();
+    const account = await lib.ask('What is the account name? ', stream);
+    const password = await lib.ask('What is the account password? ', stream);
+    let role = await lib.ask('What is this user role (user/admin)? ', stream);
+    role = role.toLowerCase();
+    if ( account === '' ){
+        console.log('You must provide a valid account name!');
+        process.exit();
+    }
+    if ( password === '' ){
+        console.log('You must provide a valid account password!');
+        process.exit();
+    }
+    if ( role !== 'user' && role !== 'admin' ){
+        console.log('You must provide a valid user role!');
+        process.exit();
+    }
+    const cocktail = await lib.generatePasswordCocktail(password);
+    const query = 'INSERT INTO users (account, password_salt, password_pepper, password_hash, password_loop, role) VALUES (?, ?, ?, ?, ?, ?);';
+    await lib.query(query, [account, cocktail.salt, cocktail.pepper, cocktail.hash, cocktail.loop, role], connection);
+    console.log('User created!');
+    process.exit();
+})();

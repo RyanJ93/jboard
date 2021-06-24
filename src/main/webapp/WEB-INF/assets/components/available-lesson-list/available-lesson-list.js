@@ -1,57 +1,76 @@
 'use strict';
 
+import Request from '../../utils/Request';
 import Utils from '../../utils/Utils';
+import User from '../../models/User';
 
 export default {
     data: function(){
         return {
             data: [],
+            isUserAdmin: false
         };
     },
+
     methods: {
         init: function(){
-            const request = new XMLHttpRequest();
-            request.open('GET', '/app/api/course/available', true);
-            request.responseType = 'json';
-            request.onreadystatechange = () => {
-                if ( request.readyState === XMLHttpRequest.DONE ){
-                    if ( !this.$parent.handleResponseError(request.response) ){
-                        this.data = request.response.data;
-                    }
-                }
-            };
-            request.send();
+            this.isUserAdmin = this.$root.authenticatedUser?.getRole() === User.ROLE_ADMIN;
+            return this.reload();
         },
+
         reset: function(){
             this.data = [];
             return this;
         },
+
+        reload: async function(){
+            const response = await Request.get('/api/course/available');
+            if ( !this.$root.$refs.app.handleResponseError(response) ){
+                this.data = response.data;
+            }
+        },
+
         getDayName: function(day){
             return Utils.getDayName(day);
         },
-        bookLesson: function(event){
-            const element = event.target.closest('li');
-            if ( element.getAttribute('data-available') === '1' ){
-                const hour = element.getAttribute('data-hour');
-                const day = element.getAttribute('data-day');
-                const teacherID = element.getAttribute('data-tid');
-                const courseID = element.getAttribute('data-cid');
-                const request = new XMLHttpRequest();
-                request.open('POST', '/app/api/lesson/create', true);
-                request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                request.responseType = 'json';
-                request.onreadystatechange = () => {
-                    if ( request.readyState === XMLHttpRequest.DONE ){
-                        if ( !this.$parent.handleResponseError(request.response) ){
-                            element.setAttribute('data-available', '0');
-                            element.setAttribute('data-mine', '1');
-                            this.$parent.getView('lesson-list').addLesson(request.response.data, 'active');
-                        }
-                    }
-                };
-                request.send('hour=' + hour + '&day=' + day + '&teacherID=' + teacherID + '&courseID=' + courseID);
+
+        handleLessonClick: async function(event){
+            const targetElement = event.target.closest('li');
+            if ( targetElement.getAttribute('data-available') === '1' ){
+                if ( !this.isUserAdmin ){
+                    await this.bookLesson(targetElement);
+                }
+            }else if ( targetElement.getAttribute('data-is-mine') === '1' || this.isUserAdmin ){
+                await this.deleteLesson(targetElement);
             }
         },
+
+        bookLesson: async function(targetElement){
+            const response = await Request.post('/api/lesson/create', {
+                hour: targetElement.getAttribute('data-hour'),
+                day: targetElement.getAttribute('data-day'),
+                teacherID: targetElement.getAttribute('data-tid'),
+                courseID: targetElement.getAttribute('data-cid')
+            });
+            if ( !this.$root.$refs.app.handleResponseError(response) ){
+                targetElement.setAttribute('data-available', '0');
+                targetElement.setAttribute('data-is-mine', '1');
+                targetElement.setAttribute('data-lid', response.data.id);
+                this.$root.$refs.app.getView('lesson-list').addLesson(response.data, 'active');
+            }
+        },
+
+        deleteLesson: async function(targetElement){
+            const lessonID = targetElement.getAttribute('data-lid');
+            const response = await Request.get('/api/lesson/delete?id=' + lessonID);
+            if ( !this.$root.$refs.app.handleResponseError(response) ){
+                targetElement.setAttribute('data-available', '1');
+                targetElement.setAttribute('data-is-mine', '0');
+                targetElement.removeAttribute('data-lid');
+                this.$root.$refs.app.getView('lesson-list').moveLessonToList(lessonID, 'cancelled');
+            }
+        },
+
         toggleDetails: function(event){
             const element = event.target.closest('li').querySelector('div[data-open]');
             if ( element !== null ){
