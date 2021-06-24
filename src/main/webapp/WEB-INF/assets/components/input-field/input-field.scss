@@ -1,0 +1,49 @@
+@import '../../theme';
+
+div.wrapper {
+  div.inner {
+    position: relative;
+    display: inline-block;
+    padding: 6px;
+    box-sizing: border-box;
+    border-radius: 3px;
+    background-color: $primary-bg-light-color;
+    width: 100%;
+
+    label.label {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      transition: top .25s, left .25s, font-size .25s;
+      will-change: top, left, font-size;
+      font-size: 14px;
+      color: $primary-text-color;
+    }
+
+    .input {
+      border: none;
+      outline: none;
+      appearance: none;
+      font-size: 14px;
+      padding: 0 6px;
+      box-sizing: border-box;
+      width: 100%;
+      background-color: transparent;
+      position: relative;
+      z-index: 10;
+      color: $primary-text-color;
+    }
+
+    .input:focus + label.label, .input:not(:placeholder-shown) + label.label {
+      font-size: 10px;
+      top: -1px;
+      left: 9px;
+    }
+  }
+
+  span.error {
+    font-size: 11px;
+    display: block;
+    color: $danger-text-color;
+  }
+}

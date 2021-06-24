@@ -1,0 +1,107 @@
+@import '../../theme';
+
+ul.tabs {
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    border: 1px solid $light-gray-border-color;
+    border-radius: 3px;
+
+    li {
+        list-style: none;
+        padding: 3px 6px;
+        box-sizing: border-box;
+        border-left: 1px solid $primary-border-color;
+        text-align: center;
+        cursor: pointer;
+        background-color: transparent;
+        transition: background-color .5s;
+        will-change: background-color;
+        flex-grow: 1;
+        width: 33%;
+
+        &:first-child {
+            border: none !important;
+        }
+
+        &:hover {
+            background-color: rgba($secondary-bg-color, .25);
+        }
+
+        &[data-active] {
+            background-color: $secondary-bg-color;
+        }
+    }
+}
+
+div.tabsWrapper {
+    div.tab {
+        display: none;
+
+        &[data-active] {
+            display: block;
+        }
+
+        ul.list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0 0;
+            width: 100%;
+
+            li {
+                list-style: none;
+                padding: 6px 0;
+                border-top: 1px solid $primary-border-color;
+                position: relative;
+
+                &:first-child {
+                    border: none !important;
+                    padding-top: 0 !important;
+
+                    div.controls {
+                        top: 9px !important;
+                    }
+                }
+
+                div.info {
+                    padding-right: 100px;
+                    box-sizing: border-box;
+                    width: 100%;
+
+                    p.title {
+                        font-size: 18px;
+                    }
+
+                    p.teacher {
+                        font-style: italic;
+                        margin-top: -6px;
+                        font-size: 15px;
+                    }
+
+                    p.date {
+                        font-size: 14px;
+                    }
+                }
+
+                div.controls {
+                    right: 0;
+                    position: absolute;
+                    top: 15px;
+
+                    a:last-child {
+                        margin-left: 6px;
+                    }
+                }
+            }
+        }
+
+        p.emptyMessage {
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+            font-style: italic;
+        }
+    }
+}

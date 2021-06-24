@@ -1,0 +1,29 @@
+div.app {
+  height: 100%;
+
+  main.main {
+    height: 100%;
+    transition: filter .5s;
+    will-change: filter;
+
+    &[data-disabled="true"] {
+      filter: blur(5px);
+    }
+  }
+
+  div.container {
+    width: 100%;
+    height: 100%;
+    padding: 72px 12px 12px 262px;
+    box-sizing: border-box;
+    display: none;
+
+    &[data-active="true"] {
+      display: block !important;
+    }
+
+    @media(max-width: 720px) {
+      padding: 72px 12px 12px 12px !important;
+    }
+  }
+}
