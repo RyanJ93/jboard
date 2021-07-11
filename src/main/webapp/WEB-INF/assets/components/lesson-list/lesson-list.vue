@@ -8,7 +8,7 @@
         </ul>
         <div :class="$style.tabsWrapper">
             <div :class="$style.tab" :data-active="activeTab === 'active-lessons'">
-                <ul :class="$style.list" v-if="lessons.active.length">
+                <ul :class="$style.list" v-if="lessons.active.length > 0">
                     <li v-for="lesson in lessons.active" :data-lid="lesson.id">
                         <div :class="$style.info">
                             <p :class="$style.title">{{ lesson.course.title }}</p>
@@ -23,14 +23,14 @@
                             </a>
                         </div>
                         <p :class="$style.date">
-                            <span v-if="typeof lesson.user === 'object'">Booked by {{ lesson.user.account }} on </span>{{ getDayName(lesson.day) + ', ' + lesson.hour + ':00 - ' + ( lesson.hour + 1 ) + ':00' }}
+                            <span v-if="isUserAdmin && typeof lesson.user === 'object'">Booked by {{ lesson.user.account }} on </span>{{ getDayName(lesson.day) + ', ' + lesson.hour + ':00 - ' + ( lesson.hour + 1 ) + ':00' }}
                         </p>
                     </li>
                 </ul>
                 <p :class="$style.emptyMessage" v-else>No active lesson found</p>
             </div>
             <div :class="$style.tab" :data-active="activeTab === 'completed-lessons'">
-                <ul :class="$style.list" v-if="lessons.completed.length">
+                <ul :class="$style.list" v-if="lessons.completed.length > 0">
                     <li v-for="lesson in lessons.completed" :data-lid="lesson.id">
                         <div :class="$style.info">
                             <p :class="$style.title">{{ lesson.course.title }}</p>
@@ -44,7 +44,7 @@
                 <p :class="$style.emptyMessage" v-else>No completed lesson found</p>
             </div>
             <div :class="$style.tab" :data-active="activeTab === 'cancelled-lessons'">
-                <ul :class="$style.list" v-if="lessons.cancelled.length">
+                <ul :class="$style.list" v-if="lessons.cancelled.length > 0">
                     <li v-for="lesson in lessons.cancelled" :data-lid="lesson.id">
                         <div :class="$style.info">
                             <p :class="$style.title">{{ lesson.course.title }}</p>

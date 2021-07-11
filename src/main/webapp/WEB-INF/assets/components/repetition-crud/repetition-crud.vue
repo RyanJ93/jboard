@@ -8,7 +8,7 @@
                 </a>
             </div>
         </div>
-        <ul :class="$style.list">
+        <ul :class="$style.list" v-if="repetitions.length > 0">
             <li v-for="repetition in repetitions" :data-rid="repetition.id">
                 <div :class="$style.info">
                     <p>{{ repetition.course.title }}</p>
@@ -21,6 +21,7 @@
                 </div>
             </li>
         </ul>
+        <p :class="$style.emptyMessage" v-else>No repetition found</p>
         <div :class="$style.creationDialog" data-display="false" ref="creationDialog">
             <form :class="$style.form" ref="form" v-on:submit="handleCreation">
                 <h5 class="mb-4">Add a new repetition</h5>

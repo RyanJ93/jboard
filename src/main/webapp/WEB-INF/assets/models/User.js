@@ -28,6 +28,10 @@ class User {
     getRole(){
         return this.#role;
     }
+
+    isAdmin(){
+        return this.#role === User.ROLE_ADMIN;
+    }
 }
 
 Object.defineProperty(User, 'ROLE_USER', {

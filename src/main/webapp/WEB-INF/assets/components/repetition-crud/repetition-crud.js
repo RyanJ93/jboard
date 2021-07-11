@@ -44,6 +44,22 @@ export default {
             return this;
         },
 
+        validate: function(){
+            const teacherID = parseInt(this.$refs.teacherID.value);
+            const courseID = parseInt(this.$refs.courseID.value);
+            this.formErrorMessages = {};
+            let isValid = true;
+            if ( teacherID === 0 || isNaN(teacherID) ){
+                this.formErrorMessages.teacherID = 'You must select a teacher.';
+                isValid = false;
+            }
+            if ( courseID === 0 || isNaN(courseID) ){
+                this.formErrorMessages.courseID = 'You must select a course.';
+                isValid = false;
+            }
+            return isValid;
+        },
+
         handleCreation: async function(event){
             event.preventDefault();
             event.stopPropagation();
@@ -76,16 +92,20 @@ export default {
         },
 
         create: async function(){
-            const response = await Request.post('/api/repetition/create', {
-                teacherID: this.$refs.teacherID.value,
-                courseID: this.$refs.courseID.value
-            });
-            if ( response.code === 400 ){
-                this.showFormErrorMessages(response);
-            }else{
-                this.repetitions.push(response.data);
-                await this.$root.$refs.app.getView('available-lesson-list').reload();
-                this.discardCreation();
+            if ( this.validate() ){
+                const response = await Request.post('/api/repetition/create', {
+                    teacherID: this.$refs.teacherID.value,
+                    courseID: this.$refs.courseID.value
+                });
+                if ( !this.$root.$refs.app.handleResponseError(response, [400]) ){
+                    if ( response.code === 400 ){
+                        this.showFormErrorMessages(response);
+                    }else{
+                        this.repetitions.push(response.data);
+                        await this.$root.$refs.app.getView('available-lesson-list').reload();
+                        this.discardCreation();
+                    }
+                }
             }
         },
 
@@ -109,9 +129,18 @@ export default {
             });
         },
 
+        removeRepetitionsFromListByCourse: function(courseID){
+            this.repetitions = this.repetitions.filter((repetition) => repetition.course.id !== courseID);
+            return this;
+        },
+
+        removeRepetitionsFromListByTeacher: function(teacherID){
+            this.repetitions = this.repetitions.filter((repetition) => repetition.teacher.id !== teacherID);
+            return this;
+        },
+
         refreshInvolvedViews: async function(){
-            const authenticatedUserRole = this.$root.authenticatedUser?.getRole();
-            const viewName = authenticatedUserRole === User.ROLE_ADMIN ? 'lesson-list-all' : 'lesson-list';
+            const viewName = this.$root.authenticatedUser?.isAdmin() === true ? 'lesson-list-all' : 'lesson-list';
             await Promise.all([
                 this.$root.$refs.app.getView('available-lesson-list').reload(),
                 this.$root.$refs.app.getView(viewName).reload()

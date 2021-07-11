@@ -1,6 +1,6 @@
 package exception;
 
-public class JBoardException extends java.lang.Exception {
+public class JBoardException extends Exception {
     public JBoardException() {
         super();
     }

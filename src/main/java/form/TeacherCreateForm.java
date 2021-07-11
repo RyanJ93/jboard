@@ -11,8 +11,8 @@ public class TeacherCreateForm extends Form {
         String name = this.request.getParameter("name");
         String surname = this.request.getParameter("surname");
         this.dropMessages();
-        if ( name == null || name.isEmpty() ){
-            this.messages.put("name", "You must provide a valid name.");
+        if ( surname == null || surname.isEmpty() ){
+            this.messages.put("surname", "You must provide a valid surname.");
         }
         if ( name == null || name.isEmpty() ){
             this.messages.put("name", "You must provide a valid name.");

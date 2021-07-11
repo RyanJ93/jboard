@@ -17,7 +17,7 @@ public class RepetitionController extends Controller {
     public void list() throws IOException {
         try{
             this.checkAuth().adminRequired();
-            ArrayList<Repetition> repetitions = Repetition.getAll();
+            ArrayList<Repetition> repetitions = Repetition.getAll(false);
             this.sendSuccessResponse(repetitions);
         }catch(Exception ex){
             this.sendException(ex);
@@ -30,7 +30,7 @@ public class RepetitionController extends Controller {
             int repetitionID = Integer.parseInt(this.request.getParameter("id"));
             Repetition repetition = Repetition.find(repetitionID);
             if ( repetition != null ){
-                repetition.delete();
+                repetition.delete(true);
             }
             this.sendSuccessResponse(null);
         }catch(Exception ex){

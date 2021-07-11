@@ -13,12 +13,14 @@ export default {
                 active: [],
                 completed: [],
                 cancelled: []
-            }
+            },
+            isUserAdmin: false
         };
     },
 
     methods: {
         init: function(){
+            this.isUserAdmin = this.$root.authenticatedUser?.isAdmin() === true;
             return this.reload();
         },
 
@@ -57,7 +59,7 @@ export default {
         mark: function(event){
             return new Promise((resolve, reject) => {
                 this.$root.$refs.app.getAlertModal().show('Do you really want to mark this lesson as completed?', 'confirm', null, () => {
-                    const lessonID = event.target.closest('li[data-lid]').getAttribute('data-lid');
+                    const lessonID = parseInt(event.target.closest('li[data-lid]').getAttribute('data-lid'));
                     Request.get('/api/lesson/mark?id=' + lessonID + '&completed=true').then((response) => {
                         if ( !this.$root.$refs.app.handleResponseError(response) ){
                             this.moveLessonToList(lessonID, 'completed');
@@ -71,7 +73,7 @@ export default {
         remove: function(event){
             return new Promise((resolve) => {
                 this.$root.$refs.app.getAlertModal().show('Do you really want to cancel this lesson?', 'confirm', null, () => {
-                    const lessonID = event.target.closest('li[data-lid]').getAttribute('data-lid');
+                    const lessonID = parseInt(event.target.closest('li[data-lid]').getAttribute('data-lid'));
                     Request.get('/api/lesson/delete?id=' + lessonID).then((response) => {
                         if ( !this.$root.$refs.app.handleResponseError(response) ){
                             this.moveLessonToList(lessonID, 'cancelled');
@@ -86,7 +88,7 @@ export default {
             for ( const currentListName in this.lessons ){
                 if ( this.lessons.hasOwnProperty(currentListName) ){
                     this.lessons[currentListName].sort((a, b) => {
-                        const dateA = new Date(a.createdAt), dateB = new Date(b.createdAt);
+                        const dateA = new Date(a.updatedAt), dateB = new Date(b.updatedAt);
                         return dateA < dateB ? 1 : ( dateA === dateB ? 0 : -1 );
                     });
                 }

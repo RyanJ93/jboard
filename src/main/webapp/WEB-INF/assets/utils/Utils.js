@@ -8,7 +8,7 @@ class Utils {
                 dayName = 'Mon';
             }break;
             case 2: {
-                dayName = 'Thu';
+                dayName = 'Tue';
             }break;
             case 3: {
                 dayName = 'Wed';

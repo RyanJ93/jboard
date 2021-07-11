@@ -13,6 +13,16 @@ export default {
 
         reload: function(){
             return this.$refs.list.reload();
+        },
+
+        moveLessonToList: function(lessonID, listName){
+            this.$refs.list.moveLessonToList(lessonID, listName);
+            return this;
+        },
+
+        addLesson: function(lesson, listName){
+            this.$refs.list.addLesson(lesson, listName);
+            return this;
         }
     }
 };

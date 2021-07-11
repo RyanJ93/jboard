@@ -4,12 +4,16 @@ import support.Database;
 import exception.ModelException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Course extends Model {
-    public static ArrayList<Course> getAll() throws ModelException {
+    public static ArrayList<Course> getAll(boolean includeDeleted) throws ModelException {
         try{
             ArrayList<Course> courses = new ArrayList<>();
-            String query = "SELECT * FROM courses;";
+            String query = "SELECT * FROM courses";
+            if ( !includeDeleted ){
+                query += " WHERE deleted_at IS NULL";
+            }
             Connection connection = Database.getConnection();
             PreparedStatement statement = connection.prepareStatement(query);
             ResultSet resultSet = statement.executeQuery();
@@ -28,7 +32,7 @@ public class Course extends Model {
     public static Course find(int id) throws ModelException {
         try{
             Course course = null;
-            String query = "SELECT * FROM courses WHERE id = ?;";
+            String query = "SELECT * FROM courses WHERE id = ? AND deleted_at IS NULL;";
             Connection connection = Database.getConnection();
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setInt(1, id);
@@ -44,8 +48,9 @@ public class Course extends Model {
         }
     }
 
-    private int id = 0;
-    private String title = null;
+    private int id;
+    private String title;
+    private Date deletedAt;
 
     public int getID(){
         return this.id;
@@ -60,10 +65,15 @@ public class Course extends Model {
         return this;
     }
 
+    public Date getDeletedAt(){
+        return this.deletedAt;
+    }
+
     public Course setPropertiesFromResultSet(ResultSet resultSet) throws ModelException {
         try{
             this.id = Course.containsField(resultSet, "course_id") ? resultSet.getInt("course_id") : resultSet.getInt("id");
             this.title = resultSet.getString("title");
+            this.deletedAt = resultSet.getTimestamp("deleted_at");
             return this;
         }catch(SQLException ex){
             throw new ModelException("SQL exception.", ex);
@@ -99,16 +109,29 @@ public class Course extends Model {
         }
     }
 
-    public Course delete() throws ModelException {
+    public Course delete(boolean softDelete) throws ModelException {
         try{
             if ( this.id != 0 ){
-                String query = "DELETE FROM courses WHERE id = ?;";
                 Connection connection = Database.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query);
-                statement.setInt(1, this.id);
-                statement.executeUpdate();
+                if ( softDelete ){
+                    String[] queries = new String[]{
+                        "UPDATE lessons SET deleted_at = NOW() WHERE course_id = ? AND completed = FALSE;",
+                        "UPDATE repetitions SET deleted_at = NOW() WHERE course_id = ?;",
+                        "UPDATE courses SET deleted_at = NOW() WHERE id = ?;"
+                    };
+                    for ( String query : queries ){
+                        PreparedStatement statement = connection.prepareStatement(query);
+                        statement.setInt(1, this.id);
+                        statement.executeUpdate();
+                        statement.close();
+                    }
+                }else{
+                    PreparedStatement statement = connection.prepareStatement("DELETE FROM courses WHERE id = ?;");
+                    statement.setInt(1, this.id);
+                    statement.executeUpdate();
+                    statement.close();
+                }
                 this.id = 0;
-                statement.close();
             }
             return this;
         }catch(SQLException ex){

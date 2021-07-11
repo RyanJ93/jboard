@@ -8,7 +8,7 @@
                 </a>
             </div>
         </div>
-        <ul :class="$style.list">
+        <ul :class="$style.list" v-if="courses.length > 0">
             <li v-for="course in courses" :data-cid="course.id">
                 <div :class="$style.info">
                     <p>{{ course.title }}</p>
@@ -20,6 +20,7 @@
                 </div>
             </li>
         </ul>
+        <p :class="$style.emptyMessage" v-else>No course found</p>
         <div :class="$style.creationDialog" data-display="false" ref="creationDialog">
             <form :class="$style.form" ref="form" v-on:submit="handleCreation">
                 <h5 class="mb-4">Add a new course</h5>

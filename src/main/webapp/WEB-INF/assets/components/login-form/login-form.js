@@ -34,7 +34,7 @@ export default {
                 const response = await Request.post('/api/user/login', {
                     account: account,
                     password: password
-                });console.log(response);
+                });
                 if ( response === null || response.code >= 500 ){
                     this.$refs.password.setErrorMessage('An error occurred while logging you in, please retry later.');
                 }else if ( response.code === 404 ){

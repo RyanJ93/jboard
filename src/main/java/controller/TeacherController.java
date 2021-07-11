@@ -15,7 +15,7 @@ public class TeacherController extends Controller {
     public void list() throws IOException {
         try{
             this.checkAuth().adminRequired();
-            ArrayList<Teacher> teachers = Teacher.getAll();
+            ArrayList<Teacher> teachers = Teacher.getAll(false);
             this.sendSuccessResponse(teachers);
         }catch(Exception ex){
             this.sendException(ex);
@@ -28,7 +28,7 @@ public class TeacherController extends Controller {
             int teacherID = Integer.parseInt(this.request.getParameter("id"));
             Teacher teacher = Teacher.find(teacherID);
             if ( teacher != null ){
-                teacher.delete();
+                teacher.delete(true);
             }
             this.sendSuccessResponse(null);
         }catch(Exception ex){

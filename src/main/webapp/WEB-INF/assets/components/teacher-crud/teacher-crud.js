@@ -76,12 +76,14 @@ export default {
                     name: this.$refs.name.getValue(),
                     surname: this.$refs.surname.getValue()
                 });
-                if ( response.code === 400 ){
-                    this.showFormErrorMessages(response);
-                }else{
-                    this.teachers.push(response.data);
-                    this.$root.$refs.app.getView('repetition-crud').setTeachers(this.teachers);
-                    this.discardCreation();
+                if ( !this.$root.$refs.app.handleResponseError(response, [400]) ){
+                    if ( response.code === 400 ){
+                        this.showFormErrorMessages(response);
+                    }else{
+                        this.teachers.push(response.data);
+                        this.$root.$refs.app.getView('repetition-crud').setTeachers(this.teachers);
+                        this.discardCreation();
+                    }
                 }
             }
         },
@@ -92,13 +94,9 @@ export default {
                     const teacherID = parseInt(event.target.closest('li[data-tid]').getAttribute('data-tid'));
                     Request.get('/api/teacher/delete?id=' + teacherID).then((response) => {
                         if ( !this.$parent.handleResponseError(response) ){
-                            for ( let i = 0 ; i < this.teachers.length ; i++ ){
-                                if ( this.teachers[i].id === teacherID ){
-                                    this.teachers.splice(i, 1);
-                                    break;
-                                }
-                            }
-                            this.$root.$refs.app.getView('repetition-crud').setTeachers(this.teachers);
+                            this.teachers = this.teachers.filter((teacher) => teacher.id !== teacherID);
+                            const repetitionCrudView = this.$root.$refs.app.getView('repetition-crud');
+                            repetitionCrudView.setTeachers(this.teachers).removeRepetitionsFromListByTeacher(teacherID);
                             return this.refreshInvolvedViews().then(() => resolve()).catch((ex) => reject(ex));
                         }
                         resolve();
@@ -108,8 +106,7 @@ export default {
         },
 
         refreshInvolvedViews: async function(){
-            const authenticatedUserRole = this.$root.authenticatedUser?.getRole();
-            const viewName = authenticatedUserRole === User.ROLE_ADMIN ? 'lesson-list-all' : 'lesson-list';
+            const viewName = this.$root.authenticatedUser?.isAdmin() === true ? 'lesson-list-all' : 'lesson-list';
             await Promise.all([
                 this.$root.$refs.app.getView('available-lesson-list').reload(),
                 this.$root.$refs.app.getView(viewName).reload()

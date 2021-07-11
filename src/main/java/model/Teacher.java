@@ -4,12 +4,16 @@ import support.Database;
 import exception.ModelException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Teacher extends Model {
-    public static ArrayList<Teacher> getAll() throws ModelException {
+    public static ArrayList<Teacher> getAll(boolean includeDeleted) throws ModelException {
         try{
             ArrayList<Teacher> teachers = new ArrayList<>();
-            String query = "SELECT * FROM teachers;";
+            String query = "SELECT * FROM teachers";
+            if ( !includeDeleted ){
+                query += " WHERE deleted_at IS NULL";
+            }
             Connection connection = Database.getConnection();
             PreparedStatement statement = connection.prepareStatement(query);
             ResultSet resultSet = statement.executeQuery();
@@ -28,7 +32,7 @@ public class Teacher extends Model {
     public static Teacher find(int id) throws ModelException {
         try{
             Teacher teacher = null;
-            String query = "SELECT * FROM teachers WHERE id = ?;";
+            String query = "SELECT * FROM teachers WHERE id = ? AND deleted_at IS NULL;";
             Connection connection = Database.getConnection();
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setInt(1, id);
@@ -45,8 +49,9 @@ public class Teacher extends Model {
     }
 
     private int id = 0;
-    private String name = null;
-    private String surname = null;
+    private String name;
+    private String surname;
+    private Date deletedAt;
 
     public int getID(){
         return this.id;
@@ -78,11 +83,16 @@ public class Teacher extends Model {
         return fullName;
     }
 
+    public Date getDeletedAt(){
+        return this.deletedAt;
+    }
+
     public Teacher setPropertiesFromResultSet(ResultSet resultSet) throws ModelException {
         try{
             this.id = Teacher.containsField(resultSet, "teacher_id") ? resultSet.getInt("teacher_id") : resultSet.getInt("id");
-            this.name = resultSet.getString("name");
             this.surname = resultSet.getString("surname");
+            this.name = resultSet.getString("name");
+            this.deletedAt = resultSet.getTimestamp("deleted_at");
             return this;
         }catch(SQLException ex){
             throw new ModelException("SQL exception.", ex);
@@ -120,16 +130,29 @@ public class Teacher extends Model {
         }
     }
 
-    public Teacher delete() throws ModelException {
+    public Teacher delete(boolean softDelete) throws ModelException {
         try{
             if ( this.id != 0 ){
-                String query = "DELETE FROM teachers WHERE id = ?;";
                 Connection connection = Database.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query);
-                statement.setInt(1, this.id);
-                statement.executeUpdate();
+                if ( softDelete ){
+                    String[] queries = new String[]{
+                            "UPDATE lessons SET deleted_at = NOW() WHERE teacher_id = ? AND completed = FALSE;",
+                            "UPDATE repetitions SET deleted_at = NOW() WHERE teacher_id = ?;",
+                            "UPDATE teachers SET deleted_at = NOW() WHERE id = ?;"
+                    };
+                    for ( String query : queries ){
+                        PreparedStatement statement = connection.prepareStatement(query);
+                        statement.setInt(1, this.id);
+                        statement.executeUpdate();
+                        statement.close();
+                    }
+                }else{
+                    PreparedStatement statement = connection.prepareStatement("DELETE FROM teachers WHERE id = ?;");
+                    statement.setInt(1, this.id);
+                    statement.executeUpdate();
+                    statement.close();
+                }
                 this.id = 0;
-                statement.close();
             }
             return this;
         }catch(SQLException ex){

@@ -1,5 +1,6 @@
 package controller;
 
+import form.LessonCreateForm;
 import model.Course;
 import model.Lesson;
 import model.Teacher;
@@ -16,18 +17,23 @@ public class LessonController extends Controller {
     public void create() throws IOException {
         try{
             this.checkAuth();
+            int teacherID = Integer.parseInt(this.request.getParameter("teacherID"));
+            int courseID = Integer.parseInt(this.request.getParameter("courseID"));
             int hour = Integer.parseInt(this.request.getParameter("hour"));
             int day = Integer.parseInt(this.request.getParameter("day"));
-            int courseID = Integer.parseInt(this.request.getParameter("courseID"));
-            int teacherID = Integer.parseInt(this.request.getParameter("teacherID"));
+            LessonCreateForm lessonCreateForm = new LessonCreateForm(this.request, this.authenticatedUser);
+            if ( !lessonCreateForm.validateAvailability() ){
+                this.sendErrorResponse("The selected time slot is not available.", 400);
+                return;
+            }
             Course course = Course.find(courseID);
             if ( course == null ){
-                this.sendErrorResponse("No such course found.", 401);
+                this.sendErrorResponse("No such course found.", 400);
                 return;
             }
             Teacher teacher = Teacher.find(teacherID);
             if ( teacher == null ){
-                this.sendErrorResponse("No such teacher found.", 402);
+                this.sendErrorResponse("No such teacher found.", 400);
                 return;
             }
             Lesson lesson = new Lesson();

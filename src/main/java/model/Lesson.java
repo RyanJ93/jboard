@@ -2,9 +2,8 @@ package model;
 
 import support.Database;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
+import java.util.*;
+import java.util.Date;
 import exception.ModelException;
 
 public class Lesson extends Model {
@@ -40,10 +39,19 @@ public class Lesson extends Model {
         }
     }
 
-    public static ArrayList<Lesson> getAll(boolean includeDeleted) throws ModelException {
+    public static ArrayList<Lesson> getAll(boolean includeDeleted, boolean uncompletedOnly) throws ModelException {
         try{
             String query = "SELECT * FROM lessons LEFT JOIN courses ON lessons.course_id = courses.id LEFT JOIN users ON lessons.user_id = users.id LEFT JOIN teachers ON lessons.teacher_id = teachers.id";
-            query += includeDeleted ? ";" : " WHERE lessons.deleted_at IS NULL;";
+            ArrayList<String> filters = new ArrayList<>();
+            if ( !includeDeleted ){
+                filters.add("lessons.deleted_at IS NULL");
+            }
+            if ( uncompletedOnly ){
+                filters.add("completed = FALSE");
+            }
+            if ( !filters.isEmpty() ){
+                query += " WHERE " + String.join(" AND ", filters);
+            }
             ArrayList<Lesson> elements = new ArrayList<>();
             Connection connection = Database.getConnection();
             PreparedStatement statement = connection.prepareStatement(query);
@@ -97,18 +105,16 @@ public class Lesson extends Model {
         try{
             ArrayList<HashMap<String, Object>> availableLessons = new ArrayList<>();
             Connection connection = Database.getConnection();
-            String bookedLessonsQuery = "SELECT * FROM lessons WHERE completed = FALSE AND deleted_at IS NULL;";
-            PreparedStatement statement = connection.prepareStatement(bookedLessonsQuery);
-            ResultSet resultSet = statement.executeQuery();
-            HashMap<String, Integer[]> bookedLessons = new HashMap<>();
-            while( resultSet.next() ){
-                String id = Lesson.getLessonStringIdentifier(resultSet.getInt("course_id"), resultSet.getInt("teacher_id"), resultSet.getInt("day"), resultSet.getInt("hour"));
-                bookedLessons.put(id, new Integer[]{resultSet.getInt("id"), resultSet.getInt("user_id")});
+            ArrayList<Lesson> lessonList = Lesson.getAll(false, true);
+            HashMap<String, Lesson> bookedLessons = new HashMap<>();
+            for ( Lesson lesson : lessonList ){
+                String id = Lesson.getLessonStringIdentifier(lesson.getCourse().getID(), lesson.getTeacher().getID(), lesson.getDay(), lesson.getHour());
+                bookedLessons.put(id, lesson);
             }
-            statement.close();
-            String allCoursesQuery = "SELECT * FROM repetitions LEFT JOIN courses ON repetitions.course_id = courses.id LEFT JOIN teachers ON repetitions.teacher_id = teachers.id ORDER BY course_id;";
-            statement = connection.prepareStatement(allCoursesQuery);
-            resultSet = statement.executeQuery();
+            String allCoursesQuery = "SELECT * FROM repetitions LEFT JOIN courses ON repetitions.course_id = courses.id LEFT JOIN teachers ON repetitions.teacher_id = teachers.id";
+            allCoursesQuery += " WHERE courses.deleted_at IS NULL AND teachers.deleted_at IS NULL ORDER BY course_id";
+            PreparedStatement statement = connection.prepareStatement(allCoursesQuery);
+            ResultSet resultSet = statement.executeQuery();
             ArrayList<HashMap<String, Object>> lessons = new ArrayList<>();
             Course course = null;
             int lastCourseID = 0;
@@ -128,7 +134,7 @@ public class Lesson extends Model {
                     lastCourseID = courseID;
                 }
                 HashMap<String, Object> element = new HashMap<>();
-                ArrayList<HashMap<String, Integer>> slots = new ArrayList<>();
+                ArrayList<HashMap<String, Object>> slots = new ArrayList<>();
                 Teacher teacher = new Teacher();
                 teacher.setPropertiesFromResultSet(resultSet);
                 element.put("teacher", teacher);
@@ -136,15 +142,15 @@ public class Lesson extends Model {
                 for ( int day = Lesson.MIN_DAY ; day <= Lesson.MAX_DAY ; day ++ ) {
                     for ( int hour = Lesson.MIN_START_HOUR ; hour <= Lesson.MAX_START_HOUR ; hour++ ) {
                         String id = Lesson.getLessonStringIdentifier(resultSet.getInt("course_id"), resultSet.getInt("teacher_id"), day, hour);
-                        Integer[] bookedLessonRefs = bookedLessons.get(id);
-                        boolean isMine = bookedLessonRefs != null && user.getID() == bookedLessonRefs[1];
-                        HashMap<String, Integer> slot = new HashMap<>();
-                        slot.put("day", day);
-                        slot.put("hour", hour);
+                        Lesson bookedLesson = bookedLessons.get(id);
+                        boolean isMine = bookedLesson != null && user.getID() == bookedLesson.getUser().getID();
+                        HashMap<String, Object> slot = new HashMap<>();
                         slot.put("available", bookedLessons.containsKey(id) ? 0 : 1);
                         slot.put("isMine", isMine ? 1 : 0);
-                        if ( isMine || ( user.isAdmin() && bookedLessonRefs != null ) ){
-                            slot.put("lessonID", bookedLessonRefs[0]);
+                        slot.put("hour", hour);
+                        slot.put("day", day);
+                        if ( isMine || ( user.isAdmin() && bookedLesson != null ) ){
+                            slot.put("lesson", bookedLesson);
                         }
                         slots.add(slot);
                     }
@@ -156,6 +162,25 @@ public class Lesson extends Model {
             }
             statement.close();
             return availableLessons;
+        }catch(SQLException ex){
+            throw new ModelException("SQL exception.", ex);
+        }
+    }
+
+    public static boolean isLessonAvailable(int courseID, int teacherID, int day, int hour) throws ModelException {
+        try{
+            String query = "SELECT id FROM lessons WHERE teacher_id = ? AND course_id = ? AND hour = ? AND day = ? AND deleted_at IS NULL AND completed = FALSE LIMIT 1;";
+            PreparedStatement statement = Database.getConnection().prepareStatement(query);
+            statement.setInt(1, teacherID);
+            statement.setInt(2, courseID);
+            statement.setInt(3, hour);
+            statement.setInt(4, day);
+            ResultSet resultSet = statement.executeQuery();
+            boolean isLessonAvailable = true;
+            while( isLessonAvailable && resultSet.next() ){
+                isLessonAvailable = false;
+            }
+            return isLessonAvailable;
         }catch(SQLException ex){
             throw new ModelException("SQL exception.", ex);
         }
@@ -304,9 +329,9 @@ public class Lesson extends Model {
             try{
                 this.hour = resultSet.getInt("hour");
             }catch(Exception ignored){}
-            this.createdAt = resultSet.getDate("created_at");
-            this.updatedAt = resultSet.getDate("updated_at");
-            this.deletedAt = resultSet.getDate("deleted_at");
+            this.createdAt = resultSet.getTimestamp("created_at");
+            this.updatedAt = resultSet.getTimestamp("updated_at");
+            this.deletedAt = resultSet.getTimestamp("deleted_at");
             this.completed = resultSet.getBoolean("completed");
             return this;
         }catch(SQLException ex){
@@ -327,7 +352,7 @@ public class Lesson extends Model {
             int teacherID = this.teacher == null ? 0 : this.teacher.getID();
             Date currentDate = new Date(Calendar.getInstance().getTimeInMillis());
             if ( this.id == 0 ){
-                String query = "INSERT INTO lessons (course_id, user_id, teacher_id, day, hour, completed, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+                String query = "INSERT INTO lessons (course_id, user_id, teacher_id, day, hour, completed, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW());";
                 Connection connection = Database.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
                 statement.setInt(1, courseID);
@@ -336,8 +361,6 @@ public class Lesson extends Model {
                 statement.setInt(4, this.day);
                 statement.setInt(5, this.hour);
                 statement.setBoolean(6, this.completed);
-                statement.setDate(7, currentDate);
-                statement.setDate(8, currentDate);
                 if ( statement.executeUpdate() == 1 ){
                     ResultSet resultSet = statement.getGeneratedKeys();
                     if ( resultSet.next() ){
@@ -348,7 +371,7 @@ public class Lesson extends Model {
                 }
                 statement.close();
             }else{
-                String query = "UPDATE lessons SET course_id = ?, user_id = ?, teacher_id = ?, day = ?, hour = ?, completed = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL;";
+                String query = "UPDATE lessons SET course_id = ?, user_id = ?, teacher_id = ?, day = ?, hour = ?, completed = ?, updated_at = NOW() WHERE id = ? AND deleted_at IS NULL;";
                 Connection connection = Database.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query);
                 statement.setInt(1, courseID);
@@ -357,8 +380,7 @@ public class Lesson extends Model {
                 statement.setInt(4, this.day);
                 statement.setInt(5, this.hour);
                 statement.setBoolean(6, this.completed);
-                statement.setDate(7, currentDate);
-                statement.setInt(8, this.id);
+                statement.setInt(7, this.id);
                 statement.executeUpdate();
                 statement.close();
                 this.updatedAt = currentDate;

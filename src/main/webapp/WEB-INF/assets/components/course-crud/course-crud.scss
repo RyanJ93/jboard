@@ -40,6 +40,13 @@ ul.list {
     }
 }
 
+p.emptyMessage {
+    font-size: 14px;
+    text-align: center;
+    margin-top: 12px;
+    font-style: italic;
+}
+
 div.creationDialog {
     position: fixed;
     top: 0;

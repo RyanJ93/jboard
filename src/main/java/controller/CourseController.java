@@ -27,7 +27,7 @@ public class CourseController extends Controller {
     public void list() throws IOException {
         try{
             this.checkAuth().adminRequired();
-            ArrayList<Course> courses = Course.getAll();
+            ArrayList<Course> courses = Course.getAll(false);
             this.sendSuccessResponse(courses);
         }catch(Exception ex){
             this.sendException(ex);
@@ -40,7 +40,7 @@ public class CourseController extends Controller {
             int courseID = Integer.parseInt(this.request.getParameter("id"));
             Course course = Course.find(courseID);
             if ( course != null ){
-                course.delete();
+                course.delete(true);
             }
             this.sendSuccessResponse(null);
         }catch(Exception ex){
