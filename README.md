@@ -2,7 +2,9 @@
 
 jBoard is a web application for online lessons management developed as an academic project using Vue, Java and Java Servlets. It is designed to support admin users, who can add new teachers, courses and then lessons, and regular users, who can book lessons.
 <br />
-A native Java based Android application is available too, more information here.
+A native Java based Android application is available too, more information [here](https://github.com/RyanJ93/jboard-android).
+<br />
+You can try out an online instance of this application [here](http://jboard.enricosola.com).
 
 ## Requirements
 
