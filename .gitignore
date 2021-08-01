@@ -8,4 +8,4 @@ package-lock.json
 *.class
 *.war
 src/main/webapp/static/main.js
-config/
+config/config.json
