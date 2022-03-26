@@ -16,7 +16,7 @@
                     <span>Logout</span>
                 </li>
             </ul>
-            <p :class="$style.credits">Developed with ❤️ by <a target="_blank" href="https://www.enricosola.com">Enrico Sola</a></p>
+            <p :class="$style.credits">Developed with ❤️ by <a target="_blank" href="https://www.enricosola.dev">Enrico Sola</a></p>
         </nav>
         <div :class="$style.overlay" ref="overlay" v-on:click="closeMenu"></div>
     </div>

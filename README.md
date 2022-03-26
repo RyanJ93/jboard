@@ -4,7 +4,7 @@ jBoard is a web application for online lessons management developed as an academ
 <br />
 A native Java based Android application is available too, more information [here](https://github.com/RyanJ93/jboard-android).
 <br />
-You can try out an online instance of this application [here](http://jboard.enricosola.com).
+You can try out an online instance of this application [here](http://jboard.enricosola.dev).
 
 ## Requirements
 
@@ -65,4 +65,4 @@ If your're running the application as a docker container you must use the follow
 
 Application server tested on Apple macOS and RedHat Enterprise Linux 8, currently not tested on Microsoft Windows.
 
-Developed with ❤️ by [Enrico Sola](https://www.enricosola.com).
+Developed with ❤️ by [Enrico Sola](https://www.enricosola.dev).
